@@ -1,0 +1,9 @@
+
+# Ignore caches/logs
+*.log
+.cache/
+
+# Secrets (see section below)
+.env
+.secrets
+
