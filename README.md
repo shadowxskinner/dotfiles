@@ -1,19 +1,40 @@
 # Dotfiles
 
-My personal macOS/Linux config backup.
+My personal cross-platform setup for **macOS** and **Arch Linux / Hyprland**.
 
-This repo stores my main setup so I can restore things quickly after a reinstall.
+This repo is used to back up and restore my main terminal/editor environment quickly after a reinstall.
 
-## What is backed up
+## What is in this repo
 
+### Shared
 - Kitty config
 - Neovim / LazyVim config
 - `.zshrc`
+- GitHub workflow
+- setup scripts
+
+### macOS
 - Homebrew packages with `Brewfile`
+- `macos-setup.sh`
 
-## Fresh macOS setup
+### Linux / Hyprland
+- Hyprland config
+- Waybar config
+- Linux-specific setup script later
 
-### 1. Install Homebrew
+---
 
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+## Repo layout
+
+```text
+dotfiles/
+├── .config/
+│   ├── kitty/
+│   ├── nvim/
+│   ├── hypr/
+│   └── waybar/
+├── .zshrc
+├── Brewfile
+├── install.sh
+├── macos-setup.sh
+└── README.md
