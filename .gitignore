@@ -7,3 +7,4 @@
 .env
 .secrets
 
+.config/nvim/lazy-lock.json

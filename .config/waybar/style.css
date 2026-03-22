@@ -1,4 +1,68 @@
-* { font-family: JetBrainsMono Nerd Font, monospace; font-size: 12px; }
-window#waybar { background: rgba(20,20,24,.6); border: 1px solid rgba(255,255,255,.08); }
-#pulseaudio, #clock { padding: 0 10px; margin: 6px; border-radius: 10px; background: rgba(255,255,255,.06); }
-#pulseaudio.muted { opacity: .6; }
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 12px;
+    min-height: 0;
+    border: none;
+    box-shadow: none;
+    text-shadow: none;
+    transition: all 0.15s ease;
+}
+
+window#waybar {
+    background: rgba(20, 20, 24, 0.68);
+    color: #c0caf5;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#workspaces {
+    margin-left: 8px;
+}
+
+#workspaces button {
+    padding: 0 8px;
+    margin: 4px 3px;
+    border-radius: 8px;
+    background: transparent;
+    color: #a9b1d6;
+}
+
+#workspaces button.active {
+    background: #7aa2f7;
+    color: #1a1b26;
+}
+
+#workspaces button:hover {
+    background: rgba(122, 162, 247, 0.20);
+    color: #c0caf5;
+}
+
+#clock,
+#network,
+#bluetooth,
+#pulseaudio,
+#tray {
+    padding: 0 10px;
+    margin: 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+#clock:hover,
+#network:hover,
+#bluetooth:hover,
+#pulseaudio:hover,
+#tray:hover {
+    background: rgba(122, 162, 247, 0.18);
+}
+
+#pulseaudio.muted {
+    opacity: 0.6;
+}
+
+#clock {
+    font-weight: 600;
+}
+
+#tray {
+    margin-right: 8px;
+}

@@ -1,20 +1,46 @@
 {
   "layer": "top",
   "position": "top",
-  "modules-right": ["pulseaudio", "clock"],
+  "height": 28,
 
-  "pulseaudio": {
-    "format": "{icon} {volume}%",
-    "format-muted": "  muted",
-    "format-icons": ["","",""],
-    "scroll-step": 5,
-    "on-click": "pavucontrol",
-    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-    "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+",
-    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
-    "tooltip": true,
-    "tooltip-format": "{desc}\n{volume}%"
+  "modules-left": ["hyprland/workspaces"],
+  "modules-center": ["clock"],
+  "modules-right": ["network", "bluetooth", "pulseaudio", "tray"],
+
+  "hyprland/workspaces": {
+    "disable-scroll": true,
+    "format": "{name}"
   },
 
-  "clock": { "format": "%a %b %d  %H:%M" }
+  "clock": {
+    "format": "{:%a %b %d  %I:%M %p}",
+    "tooltip-format": "{:%A, %B %d, %Y}",
+    "on-click": "kitty --class floating-clock -e cal"
+  },
+
+  "network": {
+    "format-wifi": "󰖩",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰖪",
+    "tooltip-format": "{ipaddr}",
+    "on-click": "nm-connection-editor"
+  },
+
+  "bluetooth": {
+    "format": "",
+    "format-disabled": "",
+    "format-off": "",
+    "on-click": "blueman-manager"
+  },
+
+  "pulseaudio": {
+    "format": "{icon}",
+    "format-muted": "󰝟",
+    "format-icons": ["", "", ""],
+    "on-click": "pavucontrol"
+  },
+
+  "tray": {
+    "spacing": 10
+  }
 }
