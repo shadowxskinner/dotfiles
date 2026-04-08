@@ -1,0 +1,44 @@
+(deflisten workspaces :initial "[]"
+  `bash ~/.config/eww/scripts/workspaces.sh`)
+(deflisten focused-app :initial ""
+  `bash ~/.config/eww/scripts/focused-app.sh`)
+(defpoll volume :interval "1s"
+  `bash ~/.config/eww/scripts/volume.sh`)
+(defpoll network :interval "5s"
+  `bash ~/.config/eww/scripts/network.sh`)
+(defpoll datetime :interval "30s"
+  `date '+%a %d %b  ·  %I:%M %p'`)
+(defwindow bar
+  :monitor 0
+  :geometry (geometry
+    :x "0%"
+    :y "8px"
+    :width "98%"
+    :height "38px"
+    :anchor "top center")
+  :stacking "fg"
+  :exclusive true
+  :namespace "eww-bar"
+  (centerbox :class "bar"
+    (left-section)
+    (center-section)
+    (right-section)))
+(defwidget left-section []
+  (box :halign "start" :space-evenly false :spacing 8
+    (box :class "island" :space-evenly false :spacing 0
+      (label :class "app-icon" :text focused-app)
+      (for ws in workspaces
+        (button :class {ws.focused ? "ws-btn focused" : "ws-btn"}
+          :onclick "i3-msg workspace number ${ws.num}"
+          {ws.num})))))
+(defwidget center-section []
+  (box :class "island center" :halign "center"
+    (button :class "datetime-btn" :onclick "bash -c 'sleep 0.1; rofi -show drun' &"
+      (label :class "datetime" :text datetime))))
+(defwidget right-section []
+  (box :halign "end" :space-evenly false :spacing 8
+    (box :class "island" :space-evenly false :spacing 14
+      (label :class "icon" :text network)
+      (label :class "icon" :text volume)
+      (button :class "power-btn" :onclick "bash ~/.config/polybar/power-menu.sh &"
+        "⏻"))))
