@@ -5,7 +5,7 @@
 
   "modules-left": ["hyprland/workspaces"],
   "modules-center": ["clock"],
-  "modules-right": ["network", "bluetooth", "pulseaudio", "tray"],
+  "modules-right": ["network", "bluetooth", "pulseaudio", "tray", "custom/power"],
 
   "hyprland/workspaces": {
     "disable-scroll": true,
@@ -42,5 +42,12 @@
 
   "tray": {
     "spacing": 10
+  },
+
+  "custom/power": {
+    "format": "󰐥",
+    "tooltip": true,
+    "tooltip-format": "Power",
+    "on-click": "~/.config/waybar/scripts/power-menu.sh"
   }
 }

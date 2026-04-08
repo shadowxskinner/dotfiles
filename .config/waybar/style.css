@@ -40,7 +40,8 @@ window#waybar {
 #network,
 #bluetooth,
 #pulseaudio,
-#tray {
+#tray,
+#custom-power {
     padding: 0 10px;
     margin: 4px;
     border-radius: 10px;
@@ -51,7 +52,8 @@ window#waybar {
 #network:hover,
 #bluetooth:hover,
 #pulseaudio:hover,
-#tray:hover {
+#tray:hover,
+#custom-power:hover {
     background: rgba(122, 162, 247, 0.18);
 }
 
@@ -64,5 +66,9 @@ window#waybar {
 }
 
 #tray {
-    margin-right: 8px;
+    margin-right: 0;
+}
+
+#custom-power {
+    margin-right: 16px;
 }

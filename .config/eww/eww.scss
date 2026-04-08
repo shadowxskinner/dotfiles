@@ -1,0 +1,88 @@
+$bg:       rgba(20, 18, 27, 0.85);
+$fg:       #e2e4f0;
+$fg-dim:   #c0c3d4;
+$primary:  #c4b5e3;
+$urgent:   #e08a9a;
+
+* {
+  all: unset;
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 11px;
+  color: $fg;
+}
+
+.bar {
+  background: transparent;
+  padding: 10px 18px 0;
+}
+
+.island {
+  background: $bg;
+  border-radius: 14px;
+  padding: 5px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.app-icon {
+  font-size: 13px;
+  color: $fg;
+  margin-right: 8px;
+}
+
+.ws-btn {
+  font-size: 12px;
+  color: $fg-dim;
+  padding: 2px 8px;
+  border-radius: 6px;
+  transition: all 200ms ease;
+  &:hover {
+    color: $fg;
+    background: rgba(255, 255, 255, 0.07);
+  }
+  &.focused {
+    color: $primary;
+    font-weight: bold;
+    background: rgba(196, 181, 227, 0.13);
+  }
+}
+
+.center { padding: 6px 32px; }
+
+.datetime {
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  color: $fg;
+}
+
+.datetime-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  transition: all 200ms ease;
+  &:hover { opacity: 0.7; }
+}
+
+.icon {
+  font-size: 14px;
+  color: $fg;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: all 200ms ease;
+  &:hover {
+    color: $primary;
+    background: rgba(255, 255, 255, 0.07);
+  }
+}
+
+.power-btn {
+  font-size: 14px;
+  color: $fg-dim;
+  padding: 2px 4px;
+  border-radius: 8px;
+  transition: all 200ms ease;
+  &:hover {
+    color: $urgent;
+    background: rgba(224, 138, 154, 0.13);
+  }
+}
