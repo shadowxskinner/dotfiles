@@ -1,0 +1,39 @@
+# Shadow's Starship Prompt
+
+add_newline = true
+
+format = """
+$directory$git_branch$git_status
+$character"""
+
+right_format = """$cmd_duration$time"""
+
+[directory]
+style = "bold blue"
+truncation_length = 3
+truncate_to_repo = false
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "bold red"
+format = "([$all_status$ahead_behind]($style) )"
+
+[cmd_duration]
+min_time = 500
+style = "yellow"
+format = "[$duration]($style) "
+
+[time]
+disabled = false
+time_format = "%I:%M %p"
+style = "dimmed white"
+format = "[$time]($style)"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
