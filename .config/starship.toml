@@ -1,4 +1,5 @@
 # Shadow's Starship Prompt
+# Kitty Theme: Yorumi Kraken
 
 add_newline = true
 
@@ -8,32 +9,51 @@ $character"""
 
 right_format = """$cmd_duration$time"""
 
+[username]
+disabled = true
+
+[hostname]
+disabled = true
+
 [directory]
-style = "bold blue"
+style = "bold fg:#AD8FD6"
 truncation_length = 3
 truncate_to_repo = false
+read_only = " "
+read_only_style = "fg:#F47571"
+format = "[$path]($style)[$read_only]($read_only_style) "
 
 [git_branch]
 symbol = " "
-style = "bold purple"
+style = "bold fg:#798DDC"
 format = "[$symbol$branch]($style) "
 
 [git_status]
-style = "bold red"
+style = "bold fg:#F47571"
 format = "([$all_status$ahead_behind]($style) )"
+
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+modified = "!"
+staged = "+"
+untracked = "?"
+deleted = "✘"
+renamed = "»"
+stashed = "\\$"
 
 [cmd_duration]
 min_time = 500
-style = "yellow"
+style = "fg:#E1C084"
 format = "[$duration]($style) "
 
 [time]
 disabled = false
 time_format = "%I:%M %p"
-style = "dimmed white"
+style = "dimmed fg:#C6C8D1"
 format = "[$time]($style)"
 
 [character]
-success_symbol = "[❯](bold green)"
-error_symbol = "[❯](bold red)"
-vimcmd_symbol = "[❮](bold green)"
+success_symbol = "[❯](bold fg:#72F1B8)"
+error_symbol = "[❯](bold fg:#F47571)"
+vimcmd_symbol = "[❮](bold fg:#E1C084)"
