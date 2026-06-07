@@ -20,3 +20,6 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# OpenClaw Completion
+[ -f "$HOME/.openclaw/completions/openclaw.zsh" ] && source "$HOME/.openclaw/completions/openclaw.zsh" 
