@@ -1,53 +1,32 @@
 {
   "layer": "top",
   "position": "top",
-  "height": 28,
-
+  "height": 30,
   "modules-left": ["hyprland/workspaces"],
   "modules-center": ["clock"],
-  "modules-right": ["network", "bluetooth", "pulseaudio", "tray", "custom/power"],
-
+  "modules-right": ["network", "pulseaudio", "tray"],
   "hyprland/workspaces": {
     "disable-scroll": true,
+    "on-click": "activate",
     "format": "{name}"
   },
-
   "clock": {
     "format": "{:%a %b %d  %I:%M %p}",
-    "tooltip-format": "{:%A, %B %d, %Y}",
-    "on-click": "kitty --class floating-clock -e cal"
+    "tooltip-format": "{:%A, %B %d, %Y}"
   },
-
   "network": {
-    "format-wifi": "󰖩",
-    "format-ethernet": "󰈀",
-    "format-disconnected": "󰖪",
-    "tooltip-format": "{ipaddr}",
+    "format-wifi": "Wi-Fi",
+    "format-ethernet": "LAN",
+    "format-disconnected": "Offline",
+    "tooltip-format": "{ifname}: {ipaddr}",
     "on-click": "nm-connection-editor"
   },
-
-  "bluetooth": {
-    "format": "",
-    "format-disabled": "",
-    "format-off": "",
-    "on-click": "blueman-manager"
-  },
-
   "pulseaudio": {
-    "format": "{icon}",
-    "format-muted": "󰝟",
-    "format-icons": ["", "", ""],
+    "format": "Volume {volume}%",
+    "format-muted": "Muted",
     "on-click": "pavucontrol"
   },
-
   "tray": {
     "spacing": 10
-  },
-
-  "custom/power": {
-    "format": "󰐥",
-    "tooltip": true,
-    "tooltip-format": "Power",
-    "on-click": "~/.config/waybar/scripts/power-menu.sh"
   }
 }

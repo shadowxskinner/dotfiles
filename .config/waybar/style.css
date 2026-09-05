@@ -1,5 +1,5 @@
 * {
-    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-family: sans-serif;
     font-size: 12px;
     min-height: 0;
     border: none;
@@ -38,10 +38,8 @@ window#waybar {
 
 #clock,
 #network,
-#bluetooth,
 #pulseaudio,
-#tray,
-#custom-power {
+#tray {
     padding: 0 10px;
     margin: 4px;
     border-radius: 10px;
@@ -50,10 +48,8 @@ window#waybar {
 
 #clock:hover,
 #network:hover,
-#bluetooth:hover,
 #pulseaudio:hover,
-#tray:hover,
-#custom-power:hover {
+#tray:hover {
     background: rgba(122, 162, 247, 0.18);
 }
 
@@ -66,9 +62,5 @@ window#waybar {
 }
 
 #tray {
-    margin-right: 0;
-}
-
-#custom-power {
-    margin-right: 16px;
+    margin-right: 12px;
 }

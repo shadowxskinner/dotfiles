@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-backup="$HOME/.config_backup_$(date +%F-%H%M)"
-mkdir -p "$backup"
+repo_dir="$(cd "$(dirname "$0")" && pwd)"
+backup="$HOME/.config-backups/dotfiles-$(date +%Y%m%d-%H%M%S)"
 
 deploy() {
-  src="$HOME/dotfiles/.config/$1"
-  dst="$HOME/.config/$1"
+  local name="$1" src="$repo_dir/.config/$1" dst="$HOME/.config/$1"
+  [[ -d "$src" ]] || { echo "Missing source: $src" >&2; return 1; }
 
-  if [ -e "$dst" ] && [ ! -L "$dst" ]; then
-    echo "Backing up $dst -> $backup/$1"
-    mkdir -p "$(dirname "$backup/$1")"
-    mv "$dst" "$backup/$1"
+  if [[ -e "$dst" || -L "$dst" ]]; then
+    mkdir -p "$backup"
+    mv "$dst" "$backup/$name"
+    echo "Backed up $dst to $backup/$name"
   fi
 
-  mkdir -p "$(dirname "$dst")"
-  ln -snf "$src" "$dst"
+  ln -s "$src" "$dst"
   echo "Linked $dst -> $src"
 }
 
-for dir in kitty nvim; do
-  [ -d "$HOME/dotfiles/.config/$dir" ] && deploy "$dir"
-done
+mkdir -p "$HOME/.config"
+deploy hypr
+deploy waybar
 
-echo "Done."
+echo "Configuration installed. Log out and select Hyprland in SDDM."
+echo "KDE and its autologin configuration were not changed."

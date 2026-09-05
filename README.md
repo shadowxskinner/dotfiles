@@ -1,51 +1,49 @@
-# Dotfiles
+# Midnight-PC dotfiles
 
-My personal cross-platform setup for macOS and Arch Linux / Hyprland.
+Personal configuration for KDE, Hyprland, Kitty, Neovim, Waybar, and related tools.
 
-This repo is used to back up and quickly restore my main terminal, editor, and desktop environment after a reinstall.
+## Hyprland status
 
-## What is in this repo
+Hyprland is configured alongside KDE, never as a replacement. KDE remains the fallback and the
+autologin target used by Sunshine/Moonlight. Select Hyprland from SDDM only when testing locally.
 
-### Shared
-- Kitty config
-- Neovim / LazyVim config
-- `.zshrc`
-- setup scripts
+The first clean baseline includes:
 
-### macOS
-- Homebrew packages via `Brewfile`
-- `macos-setup.sh`
+- the known DP-3 1440p/120 Hz layout and remembered HDMI portrait layout;
+- Kitty, Dolphin, Wofi, Waybar, SwayNC, PipeWire controls, and screenshots;
+- the useful gaps, rounded corners, blur, workspaces, scratchpad, and mouse bindings from the old setup.
 
-### Linux / Hyprland
-- Hyprland config
-- Waybar config
-- `keyd` config for Mac-like `Super` shortcuts
+The duplicate Eww experiment was removed because it targeted i3, rofi, and a missing Polybar power
+menu. The old `swww` startup was also removed because neither the program nor its referenced image
+exists. Git history remains the recovery path for both.
 
-## Repo layout
+## Install the tracked desktop configuration
 
-```text
-dotfiles/
-├── .config/
-│   ├── hypr/
-│   │   └── hyprland.conf
-│   ├── kitty/
-│   │   ├── current-theme.conf
-│   │   ├── kitty.app.icns
-│   │   └── kitty.conf
-│   ├── nvim/
-│   │   ├── init.lua
-│   │   ├── lazy-lock.json
-│   │   ├── lazyvim.json
-│   │   ├── lua/
-│   │   └── stylua.toml
-│   └── waybar/
-│       ├── config
-│       └── style.css
-├── keyd/
-│   └── default.conf
-├── .gitignore
-├── .zshrc
-├── Brewfile
-├── install.sh
-├── macos-setup.sh
-└── README.md
+```bash
+./scripts/install-hyprland-packages.sh
+./install.sh
+```
+
+Run the package script in a visible terminal so `sudo` can ask for your password. It installs tagged
+packages from Arch's official repositories. The config installer backs up an existing
+`~/.config/hypr` or `~/.config/waybar`, then links this repository. Neither script changes SDDM,
+changes KDE, or publishes anything.
+
+## First login
+
+- Open applications: `Super+Space` or `Alt+Space`
+- Terminal: `Super+Enter`
+- Files: `Super+E`
+- Close window: `Super+W`
+- Exit Hyprland: `Super+Shift+Q`
+- Screenshot a region: `Super+Shift+4`
+
+The existing timed theme manager and Wofi styles are preserved in `wayland-kde-build`. Wallpaper
+Engine rendering under Hyprland is intentionally not enabled until a renderer is selected and tested
+against the existing Workshop scenes. The KDE wallpaper path remains unchanged.
+
+## Verification
+
+```bash
+./scripts/check.sh
+```
