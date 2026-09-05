@@ -9,6 +9,10 @@ bash -n scripts/install-hyprland-packages.sh
 python -m json.tool .config/waybar/config >/dev/null
 git diff --check
 
+if command -v Hyprland >/dev/null; then
+  Hyprland --verify-config -c "$repo_dir/.config/hypr/hyprland.conf"
+fi
+
 for required in .config/hypr/hyprland.conf .config/waybar/config .config/waybar/style.css AGENTS.md .ai/context.md; do
   [[ -f "$required" ]] || { echo "Missing $required" >&2; exit 1; }
 done
