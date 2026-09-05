@@ -38,9 +38,9 @@ changes KDE, or publishes anything.
 - Exit Hyprland: `Super+Shift+Q`
 - Screenshot a region: `Super+Shift+4`
 
-The existing timed theme manager and Wofi styles are preserved in `wayland-kde-build`. Wallpaper
-Engine rendering under Hyprland is intentionally not enabled until a renderer is selected and tested
-against the existing Workshop scenes. The KDE wallpaper path remains unchanged.
+The existing timed theme manager and Wofi styles live in `wayland-kde-build`. Hyprland Wallpaper
+Engine rendering is enabled there through `linux-wallpaperengine`; only Dragon has been verified.
+This repo does not own that backend. The KDE wallpaper path remains unchanged.
 
 ## Verification
 

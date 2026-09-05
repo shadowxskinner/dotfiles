@@ -7,16 +7,18 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 ## Current status
 
 - Existing public GitHub dotfiles were recovered to `/home/shadow/Projects/dotfiles`.
-- The old Hyprland sample was reduced to a minimal machine-specific baseline.
-- Duplicate Eww experiments and broken `swww` startup were removed with Git recovery preserved.
-- KDE and the existing Wallpaper Engine integration remain unchanged.
+- Hyprland 0.56.2 is a second SDDM session; KDE remains the fallback and Sunshine autologin target.
+- The Hyprland config exports `WAYLAND_DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE`, and
+  `HYPRLAND_INSTANCE_SIGNATURE` into the systemd user environment.
+- Wallpaper Engine on Hyprland lives in `wayland-kde-build`, not this repo. Dragon is the only
+  verified Hyprland scene.
 
 ## Durable decisions
 
 - Hyprland is a second SDDM session; KDE remains the fallback and Sunshine autologin target.
-- Reuse the theme manager in `wayland-kde-build`; only its wallpaper backend should differ by session.
-- Do not select a Hyprland Wallpaper Engine backend until it can be tested in a live Hyprland session.
+- Reuse the theme manager in `wayland-kde-build`; only its wallpaper backend differs by session.
+- Do not push local commits without an explicit request.
 
 ## Next step
 
-- Install the official Hyprland baseline packages, deploy the links, and perform one local login smoke test.
+- Keep rice work in this repo separate from the Wallpaper Engine backend until other scenes are requested.
