@@ -3,10 +3,21 @@ set -euo pipefail
 
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/midnight-gaming-mode"
 state_file="$state_dir/active"
-containers=(hermes-gateway hermes-dashboard openwebui)
+# OpenWebUI was retired from ~/hermes-docker. Glances/stats stay up so HA
+# still sees GPU load during a game.
+containers=(hermes-gateway hermes-dashboard)
+ha_lan="http://192.168.68.56:8123"
+ha_ts="http://100.109.84.121:8123"
 
 notify() {
   command -v notify-send >/dev/null && notify-send "Gaming Mode" "$1" || true
+}
+
+ha_webhook() {
+  local id="$1"
+  curl -sS -m 3 -X POST "$ha_lan/api/webhook/$id" >/dev/null 2>&1 \
+    || curl -sS -m 3 -X POST "$ha_ts/api/webhook/$id" >/dev/null 2>&1 \
+    || true
 }
 
 enable() {
@@ -34,6 +45,7 @@ enable() {
     done
   fi
 
+  ha_webhook midnight_gaming_start
   notify "On — local AI models and background services paused"
   echo "Gaming Mode is on"
 }
@@ -44,6 +56,7 @@ disable() {
     [[ "$kind" == container ]] && docker start "$value" >/dev/null 2>&1 || true
   done <"$state_file"
   rm -f "$state_file"
+  ha_webhook midnight_gaming_end
   notify "Off — recorded background services restored"
   echo "Gaming Mode is off"
 }

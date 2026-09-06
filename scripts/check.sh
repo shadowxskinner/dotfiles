@@ -10,6 +10,12 @@ python -m json.tool .config/waybar/config >/dev/null
 python3 -m py_compile .config/waybar/player-button.py .config/waybar/window-count.py \
   .config/waybar/wifi-menu .config/waybar/bluetooth-menu
 bash -n scripts/gaming-mode
+grep -q 'hermes-gateway' scripts/gaming-mode
+grep -q 'hermes-dashboard' scripts/gaming-mode
+if grep -q openwebui scripts/gaming-mode; then
+  echo "OpenWebUI is retired and must not appear in gaming-mode" >&2
+  exit 1
+fi
 test_state="$(mktemp -d)"
 trap 'rm -rf "$test_state"' EXIT
 [[ "$(XDG_STATE_HOME="$test_state" scripts/gaming-mode status)" == off ]]

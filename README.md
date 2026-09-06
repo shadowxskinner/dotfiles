@@ -52,8 +52,10 @@ Mac mode makes Super arrive as Alt and every bind goes dead.
 - Toggle Gaming Mode: `Super+G`
 
 Gaming Mode leaves desktop apps and Hyprland visuals untouched. It unloads active Ollama models
-and stops running Hermes containers. Toggle it off to restart only the containers it stopped;
-Ollama models load again automatically when an app next requests one.
+and stops running Hermes containers (`hermes-gateway`, `hermes-dashboard`). Toggle it off to
+restart only the containers it stopped; Ollama models load again automatically when an app next
+requests one. It also pings Home Assistant so the house can follow a gaming scene. OpenWebUI is
+not part of this stack.
 
 The existing timed theme manager and Wofi styles live in `wayland-kde-build`. Hyprland Wallpaper
 Engine rendering is enabled there through `linux-wallpaperengine`. Dragon and Reaper are the active,
