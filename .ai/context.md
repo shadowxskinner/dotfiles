@@ -17,6 +17,7 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
   The existing Waybar and SwayNC files remain as rollback only.
 - Hyprland uses strong kawase blur with slightly transparent windows so the wallpaper frosts through. Fullscreen stays opaque.
 - Hyprland asks GTK, Qt, and xdg-desktop-portal for dark style (`prefer-dark`) and uses a 12-hour GTK clock. KDE already uses Breeze Dark; this does not change SDDM.
+- Window borders follow `theme-set`: Dragon red, Reaper grey. `hypr-theme-apply` runs on Hyprland start and reload so Reaper cannot keep a leftover Dragon border.
 
 ## Durable decisions
 
