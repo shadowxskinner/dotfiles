@@ -2,10 +2,11 @@
 # Ignore caches/logs
 *.log
 .cache/
+__pycache__/
+*.py[cod]
 
 # Secrets (see section below)
 .env
 .secrets
 
-.config/nvim/lazy-lock.json
 .config/nvim/lazy-lock.json

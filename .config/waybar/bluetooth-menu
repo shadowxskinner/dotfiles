@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""Wofi dropdown of paired Bluetooth devices. Theme-set consumer only."""
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+
+STATE_DIR = os.path.join(
+    os.environ.get("XDG_STATE_HOME", os.path.expanduser("~/.local/state")),
+    "theme-manager",
+)
+TURN_OFF = "Turn Bluetooth off"
+TURN_ON = "Turn Bluetooth on"
+
+
+def run(args: list[str], timeout: int = 8) -> str:
+    try:
+        return subprocess.check_output(
+            args, stderr=subprocess.DEVNULL, text=True, timeout=timeout
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return ""
+
+
+def ctl(*args: str, timeout: int = 8) -> str:
+    return run(["bluetoothctl", "--timeout", str(timeout), *args], timeout=timeout + 1)
+
+
+def powered() -> bool:
+    for line in ctl("show").splitlines():
+        if "Powered:" in line:
+            return "yes" in line.lower()
+    return False
+
+
+def paired_devices() -> list[tuple[str, str, bool]]:
+    rows: list[tuple[str, str, bool]] = []
+    for line in ctl("devices", "Paired").splitlines():
+        parts = line.split(" ", 2)
+        if len(parts) < 3 or parts[0] != "Device":
+            continue
+        mac, name = parts[1], parts[2]
+        connected = any(
+            "Connected: yes" in info for info in ctl("info", mac).splitlines()
+        )
+        rows.append((mac, name, connected))
+    rows.sort(key=lambda row: (not row[2], row[1].lower()))
+    return rows
+
+
+def wofi_style() -> str:
+    theme = "dragon"
+    current = os.path.join(STATE_DIR, "current")
+    if os.path.isfile(current):
+        with open(current, encoding="utf-8") as fh:
+            theme = "".join(fh.read().split()) or theme
+    path = os.path.expanduser(f"~/.config/wofi/themes/{theme}.css")
+    if os.path.isfile(path):
+        return path
+    fallback = os.path.expanduser("~/.config/wofi/style.css")
+    return fallback if os.path.isfile(fallback) else ""
+
+
+def on_hyprland() -> bool:
+    desktop = os.environ.get("XDG_CURRENT_DESKTOP", "")
+    if "hyprland" in desktop.lower():
+        return True
+    return subprocess.call(["pgrep", "-x", "Hyprland"], stdout=subprocess.DEVNULL) == 0
+
+
+def pick(lines: list[str]) -> str:
+    args = [
+        "wofi",
+        "--dmenu",
+        "--prompt",
+        "Bluetooth",
+        "--lines",
+        "8",
+        "--width",
+        "420",
+        "--location",
+        "top_right",
+        "--yoffset",
+        "12",
+    ]
+    style = wofi_style()
+    if style:
+        args.extend(["--style", style])
+    if on_hyprland():
+        args.extend(["-D", "close_on_focus_loss=false"])
+    proc = subprocess.run(
+        args, input="\n".join(lines) + "\n", text=True, capture_output=True
+    )
+    if proc.returncode != 0:
+        return ""
+    return proc.stdout.strip()
+
+
+def main() -> int:
+    if subprocess.call(["pgrep", "-x", "wofi"], stdout=subprocess.DEVNULL) == 0:
+        subprocess.call(["pkill", "-x", "wofi"])
+        return 0
+
+    lines: list[str] = [TURN_OFF if powered() else TURN_ON]
+    devices = paired_devices() if powered() else []
+    lookup: dict[str, tuple[str, bool]] = {}
+    for mac, name, connected in devices:
+        mark = "* " if connected else "  "
+        label = f"{mark}{name}"
+        lines.append(label)
+        lookup[label] = (mac, connected)
+        lookup[name] = (mac, connected)
+    if powered() and not devices:
+        lines.append("  (no paired devices)")
+
+    choice = pick(lines)
+    if not choice or choice.startswith("  (no paired"):
+        return 0
+    if choice == TURN_OFF:
+        ctl("power", "off")
+        return 0
+    if choice == TURN_ON:
+        ctl("power", "on")
+        return 0
+    mac, connected = lookup.get(choice, ("", False))
+    if not mac:
+        return 0
+    ctl("disconnect" if connected else "connect", mac, timeout=15)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

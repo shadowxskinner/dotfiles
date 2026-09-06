@@ -1,0 +1,213 @@
+#!/usr/bin/env python3
+"""Wofi dropdown of NetworkManager Wi-Fi networks. Theme-set consumer only."""
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+
+STATE_DIR = os.path.join(
+    os.environ.get("XDG_STATE_HOME", os.path.expanduser("~/.local/state")),
+    "theme-manager",
+)
+TURN_OFF = "Turn Wi-Fi off"
+TURN_ON = "Turn Wi-Fi on"
+DISCONNECT = "Disconnect"
+RESCAN = "Rescan"
+
+
+def run(args: list[str], timeout: int = 12) -> str:
+    try:
+        return subprocess.check_output(
+            args, stderr=subprocess.DEVNULL, text=True, timeout=timeout
+        )
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError):
+        return ""
+
+
+def wifi_on() -> bool:
+    return run(["nmcli", "-t", "radio", "wifi"]).strip().lower() == "enabled"
+
+
+def split_nmcli(line: str) -> list[str]:
+    parts: list[str] = []
+    buf: list[str] = []
+    escaped = False
+    for ch in line:
+        if escaped:
+            buf.append(ch)
+            escaped = False
+        elif ch == "\\":
+            escaped = True
+        elif ch == ":":
+            parts.append("".join(buf))
+            buf = []
+        else:
+            buf.append(ch)
+    parts.append("".join(buf))
+    return parts
+
+
+def networks(rescan: bool) -> list[tuple[str, str, bool]]:
+    args = ["nmcli", "-t", "-f", "IN-USE,SSID,SIGNAL,SECURITY", "device", "wifi", "list"]
+    args.append("--rescan")
+    args.append("yes" if rescan else "no")
+    rows: list[tuple[str, str, bool]] = []
+    seen: set[str] = set()
+    for line in run(args, timeout=20).splitlines():
+        fields = split_nmcli(line)
+        if len(fields) < 3:
+            continue
+        in_use, ssid, signal = fields[0], fields[1], fields[2]
+        if not ssid or ssid in seen:
+            continue
+        seen.add(ssid)
+        rows.append((ssid, signal, in_use == "*"))
+    rows.sort(key=lambda row: (not row[2], -int(row[1] or 0), row[0].lower()))
+    return rows
+
+
+def wofi_style() -> str:
+    theme = "dragon"
+    current = os.path.join(STATE_DIR, "current")
+    if os.path.isfile(current):
+        with open(current, encoding="utf-8") as fh:
+            theme = "".join(fh.read().split()) or theme
+    path = os.path.expanduser(f"~/.config/wofi/themes/{theme}.css")
+    if os.path.isfile(path):
+        return path
+    fallback = os.path.expanduser("~/.config/wofi/style.css")
+    return fallback if os.path.isfile(fallback) else ""
+
+
+def on_hyprland() -> bool:
+    desktop = os.environ.get("XDG_CURRENT_DESKTOP", "")
+    if "hyprland" in desktop.lower():
+        return True
+    return subprocess.call(["pgrep", "-x", "Hyprland"], stdout=subprocess.DEVNULL) == 0
+
+
+def pick(lines: list[str]) -> str:
+    args = [
+        "wofi",
+        "--dmenu",
+        "--prompt",
+        "Wi-Fi",
+        "--lines",
+        "12",
+        "--width",
+        "420",
+        "--location",
+        "top_right",
+        "--yoffset",
+        "12",
+    ]
+    style = wofi_style()
+    if style:
+        args.extend(["--style", style])
+    if on_hyprland():
+        args.extend(["-D", "close_on_focus_loss=false"])
+    proc = subprocess.run(
+        args, input="\n".join(lines) + "\n", text=True, capture_output=True
+    )
+    if proc.returncode != 0:
+        return ""
+    return proc.stdout.strip()
+
+
+def connect(ssid: str) -> int:
+    rc = subprocess.call(
+        ["nmcli", "device", "wifi", "connect", ssid],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if rc == 0:
+        return 0
+    rc = subprocess.call(
+        ["nmcli", "connection", "up", "id", ssid],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    if rc == 0:
+        return 0
+    args = [
+        "wofi",
+        "--dmenu",
+        "--prompt",
+        f"Password for {ssid}",
+        "--password",
+        "--lines",
+        "1",
+        "--width",
+        "420",
+        "--location",
+        "top_right",
+        "--yoffset",
+        "12",
+    ]
+    style = wofi_style()
+    if style:
+        args.extend(["--style", style])
+    if on_hyprland():
+        args.extend(["-D", "close_on_focus_loss=false"])
+    proc = subprocess.run(args, input="\n", text=True, capture_output=True)
+    password = proc.stdout.strip()
+    if proc.returncode != 0 or not password:
+        return rc
+    return subprocess.call(
+        ["nmcli", "device", "wifi", "connect", ssid, "password", password]
+    )
+
+
+def wifi_device() -> str:
+    for line in run(["nmcli", "-t", "-f", "DEVICE,TYPE", "device", "status"]).splitlines():
+        fields = split_nmcli(line)
+        if len(fields) >= 2 and fields[1] == "wifi":
+            return fields[0]
+    return ""
+
+
+def show_menu(*, rescan: bool) -> None:
+    lines: list[str] = []
+    if wifi_on():
+        lines.extend([TURN_OFF, DISCONNECT, RESCAN])
+    else:
+        lines.extend([TURN_ON, RESCAN])
+    for ssid, signal, active in networks(rescan):
+        mark = "* " if active else "  "
+        lines.append(f"{mark}{ssid}  ·  {signal}%")
+    if len(lines) <= 3:
+        lines.append("  (no networks found)")
+
+    choice = pick(lines)
+    if not choice or choice.startswith("  (no networks"):
+        return
+    if choice == TURN_OFF:
+        subprocess.call(["nmcli", "radio", "wifi", "off"])
+        return
+    if choice == TURN_ON:
+        subprocess.call(["nmcli", "radio", "wifi", "on"])
+        return
+    if choice == DISCONNECT:
+        dev = wifi_device()
+        if dev:
+            subprocess.call(["nmcli", "device", "disconnect", dev])
+        return
+    if choice == RESCAN:
+        show_menu(rescan=True)
+        return
+    ssid = choice.lstrip("* ").split("  ·  ", 1)[0].strip()
+    if ssid:
+        sys.exit(connect(ssid))
+
+
+def main() -> int:
+    if subprocess.call(["pgrep", "-x", "wofi"], stdout=subprocess.DEVNULL) == 0:
+        subprocess.call(["pkill", "-x", "wofi"])
+        return 0
+    show_menu(rescan=False)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

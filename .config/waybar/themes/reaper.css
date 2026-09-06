@@ -1,6 +1,4 @@
-/* Fallback stylesheet if waybar is started without -s.
-   Live theme switches write ~/.local/state/theme-manager/waybar.css instead. */
-/* dragon — screenshot-style pills. Accent from Hystar Mythic Dragon. */
+/* reaper — screenshot-style pills. Accent from Hystar Death. */
 * {
     font-family: "Inter", "Noto Sans Symbols 2", "Noto Sans Symbols", "Noto Color Emoji", "Noto Sans", sans-serif;
     font-size: 13px;
@@ -8,7 +6,7 @@
     border: none;
     box-shadow: none;
     text-shadow: none;
-    color: #ece6e4;
+    color: #e8e8ea;
 }
 
 window#waybar {
@@ -31,7 +29,7 @@ window#waybar {
 #clock,
 #custom-swaync,
 #status {
-    background: rgba(18, 14, 14, 0.48);
+    background: rgba(8, 8, 9, 0.52);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 16px;
     margin: 4px 6px;
@@ -66,21 +64,21 @@ window#waybar {
 }
 
 #workspaces button.active {
-    background: #8c1c1c;
+    background: #8a8a90;
     min-width: 22px;
 }
 
 #workspaces button.urgent {
-    background: #b43232;
+    background: #c0c0c4;
     min-width: 22px;
 }
 
 #workspaces button:hover {
-    background: rgba(140, 28, 28, 0.55);
+    background: rgba(90, 90, 95, 0.55);
 }
 
 #workspaces button.active:hover {
-    background: #8c1c1c;
+    background: #8a8a90;
 }
 
 #mpris {
@@ -98,8 +96,8 @@ window#waybar {
 }
 
 #custom-player {
-    background: #8c1c1c;
-    color: #ffffff;
+    background: #8a8a90;
+    color: #101012;
     border-radius: 99px;
     min-width: 24px;
     min-height: 24px;
@@ -120,8 +118,8 @@ window#waybar {
 #custom-windows {
     padding: 0 12px;
     font-weight: 600;
-    background: #8c1c1c;
-    color: #ffffff;
+    background: #8a8a90;
+    color: #101012;
 }
 
 #clock {
@@ -153,7 +151,7 @@ window#waybar {
 #bluetooth.off,
 #bluetooth.disabled,
 #pulseaudio.muted {
-    color: #9a8e8c;
+    color: #8a8a90;
     opacity: 0.55;
 }
 
@@ -162,11 +160,11 @@ window#waybar {
 }
 
 tooltip {
-    background: rgba(18, 14, 14, 0.92);
+    background: rgba(8, 8, 9, 0.94);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
 }
 
 tooltip label {
-    color: #f6eeed;
+    color: #e8e8e8;
 }
