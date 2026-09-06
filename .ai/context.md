@@ -14,7 +14,9 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
   the active, verified rotation; Night City is installed but intentionally inactive.
 - Wofi is a compact overlay launcher. Hyprland disables `close_on_focus_loss` so the menu can keep focus.
 - DMS owns the Hyprland bar and notifications. Its custom Dragon/Reaper palette follows `theme-set`.
-  The existing Waybar and SwayNC files remain as rollback only.
+  The tracked Waybar configuration remains as an emergency rollback only, launched by `hypr-waybar`.
+  SwayNC is not part of the active setup: no `~/.config/swaync` is tracked or deployed, and its
+  Hyprland layer rules were removed. The package may still be installed, which is harmless.
 - Hyprland uses strong kawase blur with slightly transparent windows so the wallpaper frosts through. Fullscreen stays opaque.
 - Hyprland asks GTK, Qt, and xdg-desktop-portal for dark style (`prefer-dark`) and uses a 12-hour GTK clock. KDE already uses Breeze Dark; this does not change SDDM.
 - Window borders follow `theme-set`: Dragon red, Reaper grey. `hypr-theme-apply` runs on Hyprland start and reload so Reaper cannot keep a leftover Dragon border.

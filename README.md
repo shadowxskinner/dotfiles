@@ -58,8 +58,9 @@ Ollama models load again automatically when an app next requests one.
 The existing timed theme manager and Wofi styles live in `wayland-kde-build`. Hyprland Wallpaper
 Engine rendering is enabled there through `linux-wallpaperengine`. Dragon and Reaper are the active,
 verified rotation; DMS and Hyprland window borders follow `theme-set` through `hypr-theme-apply`.
-The old Waybar and SwayNC configurations stay installed as a rollback, but DMS owns the live bar and
-notifications in Hyprland. KDE's wallpaper and autologin paths remain unchanged.
+DMS owns the live bar and notifications in Hyprland. The Waybar configuration stays tracked here as
+an emergency rollback; start it with `hypr-waybar`. SwayNC is not part of the active setup and is not
+maintained as a rollback. KDE's wallpaper and autologin paths remain unchanged.
 
 ## Verification
 
