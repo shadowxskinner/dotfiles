@@ -1,0 +1,14 @@
+[Unit]
+Description=Automatically toggle Gaming Mode for Hyprland games
+After=graphical-session.target
+PartOf=graphical-session.target
+ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/gaming-mode watch
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

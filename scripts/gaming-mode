@@ -3,6 +3,10 @@ set -euo pipefail
 
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/midnight-gaming-mode"
 state_file="$state_dir/active"
+manual_file="$state_dir/manual"
+auto_file="$state_dir/automatic"
+suppressed_file="$state_dir/suppressed"
+lock_file="$state_dir/lock"
 # OpenWebUI was retired from ~/hermes-docker. Heartbeat/stats stay up so HA
 # still sees GPU load during a game.
 containers=(hermes-gateway hermes-dashboard)
@@ -30,8 +34,86 @@ ha_webhook() {
     || true
 }
 
-enable() {
-  [[ ! -e "$state_file" ]] || { echo "Gaming Mode is already on"; return; }
+detect_games() {
+  python3 - <<'PY'
+import json
+import os
+import re
+import subprocess
+from pathlib import Path
+
+raw = os.environ.get("GAMING_MODE_CLIENTS_JSON")
+if raw is None:
+    try:
+        raw = subprocess.run(
+            ["hyprctl", "clients", "-j"], check=True, capture_output=True,
+            text=True, timeout=3,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        raise SystemExit(2)
+
+try:
+    clients = json.loads(raw)
+except (TypeError, json.JSONDecodeError):
+    raise SystemExit(2)
+
+direct = re.compile(
+    r"^(steam_app_\d+|gamescope|pcsx2(?:-qt)?|rpcs3|dolphin-emu|"
+    r"retroarch|duckstation(?:-qt)?|xemu|cemu|ryujinx|yuzu|suyu)$",
+    re.IGNORECASE,
+)
+processes = {
+    "pcsx2-qt", "pcsx2", "rpcs3", "dolphin-emu", "retroarch",
+    "duckstation-qt", "duckstation", "xemu", "cemu", "ryujinx",
+    "yuzu", "suyu", "gamescope",
+}
+
+
+def ancestry_marks_game(pid):
+    seen = set()
+    for _ in range(16):
+        if not pid or pid <= 1 or pid in seen:
+            return False
+        seen.add(pid)
+        root = Path("/proc") / str(pid)
+        try:
+            environ = (root / "environ").read_bytes().decode(errors="ignore")
+            cmdline = (root / "cmdline").read_bytes().replace(b"\0", b" ").decode(errors="ignore").lower()
+            comm = (root / "comm").read_text().strip().lower()
+            status = (root / "status").read_text()
+        except OSError:
+            return False
+        ids = re.findall(r"(?:SteamAppId|SteamGameId)=(\d+)", environ)
+        if any(value not in {"0", "769"} for value in ids):
+            return True
+        if "LUTRIS_GAME_UUID=" in environ or "lutris-wrapper" in cmdline:
+            return True
+        if comm in processes:
+            return True
+        match = re.search(r"^PPid:\s+(\d+)$", status, re.MULTILINE)
+        pid = int(match.group(1)) if match else 0
+    return False
+
+
+games = []
+for client in clients:
+    if not client.get("mapped", True):
+        continue
+    window_class = str(client.get("initialClass") or client.get("class") or "").strip()
+    title = str(client.get("initialTitle") or client.get("title") or window_class).strip()
+    pid = int(client.get("pid") or 0)
+    if direct.fullmatch(window_class) or ancestry_marks_game(pid):
+        games.append(title or window_class or f"PID {pid}")
+
+for game in dict.fromkeys(games):
+    print(game.replace("\n", " "))
+PY
+}
+
+activate_locked() {
+  local reason="$1"
+  local paused
+  [[ ! -e "$state_file" ]] || return 0
   mkdir -p "$state_dir"
   chmod 700 "$state_dir"
 
@@ -43,45 +125,130 @@ enable() {
       fi
     done
   fi
+  if command -v ollama >/dev/null; then
+    ollama ps 2>/dev/null | awk 'NR > 1 && $1 != "" {print "model\t" $1}' >>"$state_file.tmp" || true
+  fi
   mv "$state_file.tmp" "$state_file"
 
   while IFS=$'\t' read -r kind value; do
     [[ "$kind" == container ]] && docker stop "$value" >/dev/null 2>&1 || true
   done <"$state_file"
 
-  if command -v ollama >/dev/null; then
-    ollama ps 2>/dev/null | awk 'NR > 1 {print $1}' | while IFS= read -r model; do
-      [[ -n "$model" ]] && ollama stop "$model" >/dev/null 2>&1 || true
-    done
-  fi
+  while IFS=$'\t' read -r kind value; do
+    [[ "$kind" == model ]] && ollama stop "$value" >/dev/null 2>&1 || true
+  done <"$state_file"
 
+  paused="$(awk -F '\t' '{print $1 ":" $2}' "$state_file" | paste -sd, - | sed 's/,/, /g' || true)"
+  echo "Gaming Mode activated ($reason); paused: ${paused:-none}"
   ha_webhook "${HA_WEBHOOK_GAMING_START:-}"
-  notify "On — local AI models and background services paused"
-  echo "Gaming Mode is on"
+  notify "On ($reason) — Hermes and local AI paused"
 }
 
-disable() {
-  [[ -e "$state_file" ]] || { echo "Gaming Mode is already off"; return; }
+deactivate_locked() {
+  [[ -e "$state_file" ]] || return 0
+  : >"$state_file.failed"
   while IFS=$'\t' read -r kind value; do
-    [[ "$kind" == container ]] && docker start "$value" >/dev/null 2>&1 || true
+    if [[ "$kind" == container ]] && ! docker start "$value" >/dev/null 2>&1; then
+      printf 'container\t%s\n' "$value" >>"$state_file.failed"
+    fi
   done <"$state_file"
-  rm -f "$state_file"
+  if [[ -s "$state_file.failed" ]]; then
+    mv "$state_file.failed" "$state_file"
+    notify "Could not restore every paused service; Gaming Mode remains on"
+    return 1
+  fi
+  rm -f "$state_file" "$state_file.failed"
+  echo "Gaming Mode deactivated; restored recorded containers"
   ha_webhook "${HA_WEBHOOK_GAMING_END:-}"
-  notify "Off — recorded background services restored"
-  echo "Gaming Mode is off"
+  notify "Off — recorded services restored"
+}
+
+manual_on_locked() {
+  rm -f "$suppressed_file"
+  touch "$manual_file"
+  activate_locked manual
+}
+
+manual_off_locked() {
+  rm -f "$manual_file"
+  [[ -s "$auto_file" ]] && touch "$suppressed_file" || rm -f "$suppressed_file"
+  deactivate_locked
+}
+
+auto_sync_locked() {
+  local games
+  if ! games="$(detect_games)"; then
+    return 0
+  fi
+  if [[ -n "$games" ]]; then
+    printf '%s\n' "$games" >"$auto_file.tmp"
+    mv "$auto_file.tmp" "$auto_file"
+    [[ -e "$suppressed_file" ]] || activate_locked automatic
+  else
+    rm -f "$auto_file" "$suppressed_file"
+    [[ -e "$manual_file" ]] || deactivate_locked
+  fi
+}
+
+with_lock() {
+  local action="$1"
+  shift
+  mkdir -p "$state_dir"
+  chmod 700 "$state_dir"
+  (flock 9; "$action" "$@") 9>"$lock_file"
+}
+
+details() {
+  local mode=off paused=none games=none
+  if [[ -e "$state_file" ]]; then
+    if [[ -e "$manual_file" ]]; then mode=manual; else mode=automatic; fi
+    paused="$(awk -F '\t' '{print $1 ": " $2}' "$state_file" | paste -sd, - | sed 's/,/, /g')"
+    [[ -n "$paused" ]] || paused=none
+  elif [[ -e "$suppressed_file" ]]; then
+    mode="off (manual override)"
+  fi
+  [[ -s "$auto_file" ]] && games="$(paste -sd, "$auto_file" | sed 's/,/, /g')"
+  printf 'Gaming Mode: %s\nDetected games: %s\nPaused: %s\n' "$mode" "$games" "$paused"
+}
+
+watch_forever() {
+  local socket event
+  while true; do
+    socket="${XDG_RUNTIME_DIR:?}/hypr/${HYPRLAND_INSTANCE_SIGNATURE:?}/.socket2.sock"
+    if [[ ! -S "$socket" ]]; then
+      return 0
+    fi
+    with_lock auto_sync_locked
+    while IFS= read -r event; do
+      case "$event" in
+        openwindow\>\>*|closewindow\>\>*|fullscreen\>\>*|windowtitle\>\>*)
+          sleep 0.4
+          with_lock auto_sync_locked
+          ;;
+      esac
+    done < <(socat -U - "UNIX-CONNECT:$socket" 2>/dev/null)
+    sleep 2
+  done
 }
 
 load_ha_pc_env
 
 case "${1:-toggle}" in
-  on) enable ;;
-  off) disable ;;
-  # if/else, not `&& disable || enable`: with that form a non-zero return from
-  # disable falls through to enable, silently re-stopping the containers it
-  # just restarted.
+  on) with_lock manual_on_locked; echo "Gaming Mode is on" ;;
+  off) with_lock manual_off_locked; echo "Gaming Mode is off" ;;
   toggle)
-    if [[ -e "$state_file" ]]; then disable; else enable; fi
+    if [[ -e "$state_file" ]]; then
+      with_lock manual_off_locked
+      echo "Gaming Mode is off"
+    else
+      with_lock manual_on_locked
+      echo "Gaming Mode is on"
+    fi
     ;;
   status) [[ -e "$state_file" ]] && echo on || echo off ;;
-  *) echo "usage: gaming-mode [on|off|toggle|status]" >&2; exit 2 ;;
+  details) details ;;
+  detect) detect_games ;;
+  auto-sync) with_lock auto_sync_locked ;;
+  watch) watch_forever ;;
+  *) echo "usage: gaming-mode [on|off|toggle|status|details|detect|auto-sync|watch]" >&2; exit 2 ;;
 esac

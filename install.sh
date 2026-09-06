@@ -33,6 +33,18 @@ deploy_file() {
 
 mkdir -p "$HOME/.config" "$HOME/.local/bin"
 install -Dm755 "$repo_dir/scripts/gaming-mode" "$HOME/.local/bin/gaming-mode"
+install -Dm644 "$repo_dir/.config/systemd/user/gaming-mode-watch.service" \
+  "$HOME/.config/systemd/user/gaming-mode-watch.service"
+install -Dm644 "$repo_dir/.config/DankMaterialShell/plugins/GamingMode/plugin.json" \
+  "$HOME/.config/DankMaterialShell/plugins/GamingMode/plugin.json"
+install -Dm644 "$repo_dir/.config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml" \
+  "$HOME/.config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml"
+systemctl --user daemon-reload
+systemctl --user enable --now gaming-mode-watch.service
+if command -v dms >/dev/null; then
+  dms ipc plugin-scan scan >/dev/null || true
+  dms ipc call plugins enable gamingMode >/dev/null || true
+fi
 
 mkdir -p "$HOME/.config"
 deploy hypr

@@ -51,12 +51,14 @@ Mac mode makes Super arrive as Alt and every bind goes dead.
 - Volume up / down / mute: `Super+=` / `Super+-` / `Super+M`
 - Toggle Gaming Mode: `Super+G`
 
-Gaming Mode leaves desktop apps and Hyprland visuals untouched. It unloads active Ollama models
-and stops running Hermes containers (`hermes-gateway`, `hermes-dashboard`). Toggle it off to
-restart only the containers it stopped; Ollama models load again automatically when an app next
-requests one. It also notifies Home Assistant so the house can follow a gaming scene. Webhook
-IDs come from `~/.config/ha-pc.env`, not from this repository. OpenWebUI is
-not part of this stack.
+Gaming Mode leaves desktop apps and Hyprland visuals untouched. It activates automatically for
+Steam games, Lutris/Wine games, Gamescope, and the installed emulators, then restores only the
+Hermes containers it stopped after the last game closes. `Super+G` remains a manual override;
+turning automatic mode off suppresses it until the current game closes. Ollama models unload and
+return only when an app requests one. Run `gaming-mode details` to see the trigger, detected games,
+and paused containers. The DMS gamepad pill and Control Center tile show and toggle the same state.
+Home Assistant webhook IDs come from `~/.config/ha-pc.env`, never Git. OpenWebUI is not part of
+this stack.
 
 The existing timed theme manager and Wofi styles live in `wayland-kde-build`. Hyprland Wallpaper
 Engine rendering is enabled there through `linux-wallpaperengine`. Dragon and Reaper are the active,
