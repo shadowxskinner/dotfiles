@@ -56,7 +56,8 @@ Steam games, Lutris/Wine games, Gamescope, and the installed emulators, then res
 Hermes containers it stopped after the last game closes. `Super+G` remains a manual override;
 turning automatic mode off suppresses it until the current game closes. Ollama models unload and
 return only when an app requests one. Run `gaming-mode details` to see the trigger, detected games,
-and paused containers. The DMS gamepad pill and Control Center tile show and toggle the same state.
+and paused containers. The DMS Control Center tile shows and toggles the same state without adding
+another permanent icon to the bar.
 Home Assistant webhook IDs come from `~/.config/ha-pc.env`, never Git. OpenWebUI is not part of
 this stack.
 

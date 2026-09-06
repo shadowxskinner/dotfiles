@@ -1,11 +1,11 @@
 {
   "id": "gamingMode",
   "name": "Gaming Mode",
-  "description": "Shows and toggles Midnight-PC Gaming Mode",
+  "description": "Shows and toggles Midnight-PC Gaming Mode in Control Center",
   "version": "1.0.0",
   "author": "Shadow",
   "type": "widget",
-  "capabilities": ["dankbar-widget", "control-center"],
+  "capabilities": ["control-center"],
   "component": "./GamingModeWidget.qml",
   "icon": "sports_esports",
   "permissions": ["process"]
