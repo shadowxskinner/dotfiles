@@ -39,6 +39,15 @@ install -Dm644 "$repo_dir/.config/DankMaterialShell/plugins/GamingMode/plugin.js
   "$HOME/.config/DankMaterialShell/plugins/GamingMode/plugin.json"
 install -Dm644 "$repo_dir/.config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml" \
   "$HOME/.config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml"
+if ! cmp -s "$repo_dir/.config/DankMaterialShell/settings.json" \
+             "$HOME/.config/DankMaterialShell/settings.json"; then
+  if [[ -f "$HOME/.config/DankMaterialShell/settings.json" ]]; then
+    mkdir -p "$backup"
+    cp -a "$HOME/.config/DankMaterialShell/settings.json" "$backup/DankMaterialShell-settings.json"
+  fi
+  install -Dm644 "$repo_dir/.config/DankMaterialShell/settings.json" \
+    "$HOME/.config/DankMaterialShell/settings.json"
+fi
 systemctl --user daemon-reload
 systemctl --user enable --now gaming-mode-watch.service
 if command -v dms >/dev/null; then

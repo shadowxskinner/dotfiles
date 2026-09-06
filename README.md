@@ -61,6 +61,9 @@ another permanent icon to the bar.
 Home Assistant webhook IDs come from `~/.config/ha-pc.env`, never Git. OpenWebUI is not part of
 this stack.
 
+The tracked DMS settings keep Gaming Mode in Control Center and hide the redundant red Ethernet
+status glyph from the bar. Ethernet remains available inside Control Center.
+
 The existing timed theme manager and Wofi styles live in `wayland-kde-build`. Hyprland Wallpaper
 Engine rendering is enabled there through `linux-wallpaperengine`. Dragon and Reaper are the active,
 verified rotation; DMS and Hyprland window borders follow `theme-set` through `hypr-theme-apply`.

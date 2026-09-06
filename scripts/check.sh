@@ -11,6 +11,9 @@ python3 -m py_compile .config/waybar/player-button.py .config/waybar/window-coun
   .config/waybar/wifi-menu .config/waybar/bluetooth-menu
 bash -n scripts/gaming-mode
 python -m json.tool .config/DankMaterialShell/plugins/GamingMode/plugin.json >/dev/null
+python -m json.tool .config/DankMaterialShell/settings.json >/dev/null
+grep -q '"showNetworkIcon": false' .config/DankMaterialShell/settings.json
+grep -q '"id": "plugin_gamingMode"' .config/DankMaterialShell/settings.json
 grep -q '"capabilities": \["control-center"\]' .config/DankMaterialShell/plugins/GamingMode/plugin.json
 if grep -q 'BarPill' .config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml; then
   echo "Gaming Mode belongs in DMS Control Center, not the bar" >&2
