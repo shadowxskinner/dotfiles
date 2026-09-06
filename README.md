@@ -49,6 +49,12 @@ Mac mode makes Super arrive as Alt and every bind goes dead.
 - Region screenshot: `Super+P`  (saved under `~/Pictures`)
 - Full screenshot: `Super+Shift+P`
 - Volume up / down / mute: `Super+=` / `Super+-` / `Super+M`
+- Toggle Gaming Mode: `Super+G`
+
+Gaming Mode closes ChatGPT and Claude windows, leaves Cursor untouched, unloads active Ollama
+models, stops running Hermes containers, and temporarily disables Hyprland blur and animations.
+Toggle it off to restart only the containers it stopped and restore the normal desktop effects.
+Closed desktop apps are not reopened automatically.
 
 The existing timed theme manager and Wofi styles live in `wayland-kde-build`. Hyprland Wallpaper
 Engine rendering is enabled there through `linux-wallpaperengine`. Dragon and Reaper are the active,

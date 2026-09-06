@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/midnight-gaming-mode"
+state_file="$state_dir/active"
+containers=(hermes-gateway hermes-dashboard openwebui)
+
+notify() {
+  command -v notify-send >/dev/null && notify-send "Gaming Mode" "$1" || true
+}
+
+close_ai_windows() {
+  command -v hyprctl >/dev/null || return 0
+  while IFS= read -r address; do
+    [[ -n "$address" ]] && hyprctl dispatch closewindow "address:$address" >/dev/null || true
+  done < <(
+    hyprctl clients -j 2>/dev/null | python3 -c '
+import json, sys
+for window in json.load(sys.stdin):
+    if str(window.get("class", "")).lower() in {"chatgpt", "claude"}:
+        print(window.get("address", ""))
+' 2>/dev/null || true
+  )
+}
+
+enable() {
+  [[ ! -e "$state_file" ]] || { echo "Gaming Mode is already on"; return; }
+  mkdir -p "$state_dir"
+  chmod 700 "$state_dir"
+
+  : >"$state_file.tmp"
+  if command -v docker >/dev/null; then
+    for container in "${containers[@]}"; do
+      if [[ "$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null || true)" == true ]]; then
+        printf 'container\t%s\n' "$container" >>"$state_file.tmp"
+      fi
+    done
+  fi
+  mv "$state_file.tmp" "$state_file"
+
+  while IFS=$'\t' read -r kind value; do
+    [[ "$kind" == container ]] && docker stop "$value" >/dev/null 2>&1 || true
+  done <"$state_file"
+
+  if command -v ollama >/dev/null; then
+    ollama ps 2>/dev/null | awk 'NR > 1 {print $1}' | while IFS= read -r model; do
+      [[ -n "$model" ]] && ollama stop "$model" >/dev/null 2>&1 || true
+    done
+  fi
+
+  close_ai_windows
+  hyprctl keyword decoration:blur:enabled false >/dev/null 2>&1 || true
+  hyprctl keyword animations:enabled false >/dev/null 2>&1 || true
+  notify "On — AI services paused and desktop effects reduced"
+  echo "Gaming Mode is on"
+}
+
+disable() {
+  [[ -e "$state_file" ]] || { echo "Gaming Mode is already off"; return; }
+  while IFS=$'\t' read -r kind value; do
+    [[ "$kind" == container ]] && docker start "$value" >/dev/null 2>&1 || true
+  done <"$state_file"
+  rm -f "$state_file"
+  hyprctl reload >/dev/null 2>&1 || true
+  notify "Off — recorded services restored and desktop effects reloaded"
+  echo "Gaming Mode is off"
+}
+
+case "${1:-toggle}" in
+  on) enable ;;
+  off) disable ;;
+  toggle) [[ -e "$state_file" ]] && disable || enable ;;
+  status) [[ -e "$state_file" ]] && echo on || echo off ;;
+  *) echo "usage: gaming-mode [on|off|toggle|status]" >&2; exit 2 ;;
+esac

@@ -9,6 +9,15 @@ bash -n scripts/install-hyprland-packages.sh
 python -m json.tool .config/waybar/config >/dev/null
 python3 -m py_compile .config/waybar/player-button.py .config/waybar/window-count.py \
   .config/waybar/wifi-menu .config/waybar/bluetooth-menu
+bash -n scripts/gaming-mode
+test_state="$(mktemp -d)"
+trap 'rm -rf "$test_state"' EXIT
+[[ "$(XDG_STATE_HOME="$test_state" scripts/gaming-mode status)" == off ]]
+mkdir -p "$test_state/midnight-gaming-mode"
+touch "$test_state/midnight-gaming-mode/active"
+[[ "$(XDG_STATE_HOME="$test_state" scripts/gaming-mode status)" == on ]]
+rm -rf "$test_state"
+trap - EXIT
 git diff --check
 
 if command -v Hyprland >/dev/null; then
@@ -20,7 +29,7 @@ for required in .config/hypr/hyprland.conf .config/waybar/config .config/waybar/
                 .config/gtk-3.0/settings.ini \
                 .config/gtk-4.0/settings.ini \
                 .config/xdg-desktop-portal/hyprland-portals.conf \
-                AGENTS.md .ai/context.md; do
+                scripts/gaming-mode AGENTS.md .ai/context.md; do
   [[ -f "$required" ]] || { echo "Missing $required" >&2; exit 1; }
 done
 

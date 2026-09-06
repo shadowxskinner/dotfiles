@@ -18,6 +18,7 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 - Hyprland uses strong kawase blur with slightly transparent windows so the wallpaper frosts through. Fullscreen stays opaque.
 - Hyprland asks GTK, Qt, and xdg-desktop-portal for dark style (`prefer-dark`) and uses a 12-hour GTK clock. KDE already uses Breeze Dark; this does not change SDDM.
 - Window borders follow `theme-set`: Dragon red, Reaper grey. `hypr-theme-apply` runs on Hyprland start and reload so Reaper cannot keep a leftover Dragon border.
+- `gaming-mode` is an explicit `Super+G` toggle. It closes ChatGPT/Claude windows, preserves Cursor, unloads Ollama models, stops only running Hermes containers, and temporarily disables Hyprland blur/animations. Turning it off restores the recorded containers and reloads Hyprland.
 
 ## Durable decisions
 

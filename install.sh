@@ -31,6 +31,9 @@ deploy_file() {
   echo "Linked $dst -> $src"
 }
 
+mkdir -p "$HOME/.config" "$HOME/.local/bin"
+install -Dm755 "$repo_dir/scripts/gaming-mode" "$HOME/.local/bin/gaming-mode"
+
 mkdir -p "$HOME/.config"
 deploy hypr
 deploy waybar
