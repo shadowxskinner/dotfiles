@@ -51,7 +51,12 @@ disable() {
 case "${1:-toggle}" in
   on) enable ;;
   off) disable ;;
-  toggle) [[ -e "$state_file" ]] && disable || enable ;;
+  # if/else, not `&& disable || enable`: with that form a non-zero return from
+  # disable falls through to enable, silently re-stopping the containers it
+  # just restarted.
+  toggle)
+    if [[ -e "$state_file" ]]; then disable; else enable; fi
+    ;;
   status) [[ -e "$state_file" ]] && echo on || echo off ;;
   *) echo "usage: gaming-mode [on|off|toggle|status]" >&2; exit 2 ;;
 esac
