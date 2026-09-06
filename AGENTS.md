@@ -7,3 +7,10 @@
 - Use official Arch packages for the Hyprland baseline. Avoid AUR rice bundles and `-git` Hyprland packages unless a verified requirement needs them.
 - Run `./scripts/check.sh` and report exactly what was verified.
 - Update `.ai/context.md` only with durable project status and decisions; never store secrets or conversations.
+
+## Commits and pushing
+
+- Commit freely, without asking. Small, coherent commits on a branch are the
+  rollback path, and creating one is not a decision that needs approval.
+- **Never push without explicit permission, every time.** Pushing is publishing.
+  Approval for one push is not approval for the next.
