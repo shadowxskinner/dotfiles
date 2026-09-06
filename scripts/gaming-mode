@@ -26,12 +26,20 @@ load_ha_pc_env() {
 
 ha_webhook() {
   local id="${1:-}"
-  [[ -n "$id" ]] || return 0
   local ha_lan="${HA_URL:-http://192.168.68.56:8123}"
   local ha_ts="${HA_TS_URL:-http://100.109.84.121:8123}"
-  curl -sS -m 3 -X POST "$ha_lan/api/webhook/$id" >/dev/null 2>&1 \
-    || curl -sS -m 3 -X POST "$ha_ts/api/webhook/$id" >/dev/null 2>&1 \
-    || true
+  local code=""
+  mkdir -p "$state_dir"
+  chmod 700 "$state_dir"
+  if [[ -z "$id" ]]; then
+    printf 'skipped-no-id\n' >"$state_dir/ha-last"
+    return 0
+  fi
+  code="$(curl -sS -m 3 -o /dev/null -w '%{http_code}' -X POST "$ha_lan/api/webhook/$id" 2>/dev/null || true)"
+  if [[ "$code" != "200" ]]; then
+    code="$(curl -sS -m 3 -o /dev/null -w '%{http_code}' -X POST "$ha_ts/api/webhook/$id" 2>/dev/null || true)"
+  fi
+  printf '%s\n' "${code:-000}" >"$state_dir/ha-last"
 }
 
 detect_games() {
@@ -208,7 +216,10 @@ details() {
     mode="off (manual override)"
   fi
   [[ -s "$auto_file" ]] && games="$(paste -sd, "$auto_file" | sed 's/,/, /g')"
-  printf 'Gaming Mode: %s\nDetected games: %s\nPaused: %s\n' "$mode" "$games" "$paused"
+  local ha_last=none
+  [[ -f "$state_dir/ha-last" ]] && ha_last="$(<"$state_dir/ha-last")"
+  printf 'Gaming Mode: %s\nDetected games: %s\nPaused: %s\nHA webhook: %s\n' \
+    "$mode" "$games" "$paused" "$ha_last"
 }
 
 watch_forever() {

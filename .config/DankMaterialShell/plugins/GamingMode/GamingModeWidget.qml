@@ -7,9 +7,10 @@ PluginComponent {
 
     property bool active: false
     property bool busy: false
+    readonly property var gamingMode: ["/home/shadow/.local/bin/gaming-mode"]
 
     function refresh() {
-        Proc.runCommand("gamingMode.status", ["gaming-mode", "status"], (stdout, exitCode) => {
+        Proc.runCommand("gamingMode.status", root.gamingMode.concat(["status"]), (stdout, exitCode) => {
             if (exitCode === 0)
                 root.active = stdout.trim() === "on"
         }, 100)
@@ -19,7 +20,7 @@ PluginComponent {
         if (root.busy)
             return
         root.busy = true
-        Proc.runCommand("gamingMode.toggle", ["gaming-mode", enabled ? "on" : "off"], (stdout, exitCode) => {
+        Proc.runCommand("gamingMode.toggle", root.gamingMode.concat([enabled ? "on" : "off"]), (stdout, exitCode) => {
             root.busy = false
             root.refresh()
         }, 15000)
@@ -36,7 +37,7 @@ PluginComponent {
 
     ccWidgetIcon: "sports_esports"
     ccWidgetPrimaryText: "Gaming Mode"
-    ccWidgetSecondaryText: active ? "Hermes and local AI paused" : "Ready — automatic detection on"
+    ccWidgetSecondaryText: active ? "Hermes paused — HA gaming lights" : "Ready — automatic detection on"
     ccWidgetIsActive: active
     onCcWidgetToggled: setMode(!active)
 }

@@ -10,15 +10,47 @@ python -m json.tool .config/waybar/config >/dev/null
 python3 -m py_compile .config/waybar/player-button.py .config/waybar/window-count.py \
   .config/waybar/wifi-menu .config/waybar/bluetooth-menu
 bash -n scripts/gaming-mode
+bash -n scripts/session-switch
+bash -n scripts/midnight-session-helper
 python -m json.tool .config/DankMaterialShell/plugins/GamingMode/plugin.json >/dev/null
+python -m json.tool .config/DankMaterialShell/plugins/SessionKde/plugin.json >/dev/null
+python -m json.tool .config/DankMaterialShell/plugins/SessionWindows/plugin.json >/dev/null
 python -m json.tool .config/DankMaterialShell/settings.json >/dev/null
 grep -q '"showNetworkIcon": false' .config/DankMaterialShell/settings.json
 grep -q '"id": "plugin_gamingMode"' .config/DankMaterialShell/settings.json
-grep -q '"capabilities": \["control-center"\]' .config/DankMaterialShell/plugins/GamingMode/plugin.json
-if grep -q 'BarPill' .config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml; then
-  echo "Gaming Mode belongs in DMS Control Center, not the bar" >&2
+grep -q '"id": "plugin_sessionKde"' .config/DankMaterialShell/settings.json
+grep -q '"id": "plugin_sessionWindows"' .config/DankMaterialShell/settings.json
+grep -q '/home/shadow/.local/bin/gaming-mode' \
+  .config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml
+grep -q '"capabilities": \["control-center"\]' .config/DankMaterialShell/plugins/SessionKde/plugin.json
+grep -q '"capabilities": \["control-center"\]' .config/DankMaterialShell/plugins/SessionWindows/plugin.json
+if grep -q 'BarPill' .config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml \
+     .config/DankMaterialShell/plugins/SessionKde/SessionKdeWidget.qml \
+     .config/DankMaterialShell/plugins/SessionWindows/SessionWindowsWidget.qml; then
+  echo "Session actions belong in DMS Control Center, not the bar" >&2
   exit 1
 fi
+if grep -q 'BootOrder' scripts/midnight-session-helper; then
+  echo "session helper must not change EFI BootOrder" >&2
+  exit 1
+fi
+grep -q -- '--bootnext' scripts/midnight-session-helper
+grep -q zz-midnight-once.conf scripts/midnight-session-helper
+status_out="$(scripts/session-switch status)"
+grep -q '^desktop: ' <<<"$status_out"
+grep -q '^windows-boot: ' <<<"$status_out"
+grep -q '^helper: ' <<<"$status_out"
+SESSION_SWITCH_YES=1 SESSION_SWITCH_DRY_RUN=1 scripts/session-switch windows >/dev/null
+if scripts/midnight-session-helper --dry-run kde 2>/dev/null; then
+  echo "midnight-session-helper must refuse non-root" >&2
+  exit 1
+fi
+if grep -q 'custom/session' .config/waybar/config && ! grep -q 'session-switch menu' .config/waybar/config; then
+  echo "Waybar session module must call session-switch menu" >&2
+  exit 1
+fi
+grep -q 'session-switch menu' .config/waybar/config
+grep -q 'session-switch menu' .config/hypr/hyprland.conf
 grep -q 'hermes-gateway' scripts/gaming-mode
 grep -q 'hermes-dashboard' scripts/gaming-mode
 if grep -q openwebui scripts/gaming-mode; then
@@ -90,7 +122,13 @@ for required in .config/hypr/hyprland.conf .config/waybar/config .config/waybar/
                 .config/systemd/user/gaming-mode-watch.service \
                 .config/DankMaterialShell/plugins/GamingMode/plugin.json \
                 .config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml \
-                scripts/gaming-mode AGENTS.md .ai/context.md; do
+                .config/DankMaterialShell/plugins/SessionKde/plugin.json \
+                .config/DankMaterialShell/plugins/SessionKde/SessionKdeWidget.qml \
+                .config/DankMaterialShell/plugins/SessionWindows/plugin.json \
+                .config/DankMaterialShell/plugins/SessionWindows/SessionWindowsWidget.qml \
+                polkit/org.midnight.session-switch.policy \
+                scripts/gaming-mode scripts/session-switch scripts/midnight-session-helper \
+                AGENTS.md .ai/context.md; do
   [[ -f "$required" ]] || { echo "Missing $required" >&2; exit 1; }
 done
 
