@@ -20,7 +20,7 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 - Hyprland uses strong kawase blur with slightly transparent windows so the wallpaper frosts through. Fullscreen stays opaque.
 - Hyprland asks GTK, Qt, and xdg-desktop-portal for dark style (`prefer-dark`) and uses a 12-hour GTK clock. KDE already uses Breeze Dark; this does not change SDDM.
 - Window borders follow `theme-set`: Dragon red, Reaper grey. `hypr-theme-apply` runs on Hyprland start and reload so Reaper cannot keep a leftover Dragon border.
-- `gaming-mode` is an explicit `Super+G` toggle. It leaves desktop apps and Hyprland visuals untouched, unloads Ollama models, and stops `hermes-gateway` / `hermes-dashboard`. Turning it off restores the recorded containers; Ollama reloads models on demand. It POSTs `midnight_gaming_start` / `midnight_gaming_end` to Home Assistant. OpenWebUI is retired from the compose stack and from this toggle.
+- `gaming-mode` is an explicit `Super+G` toggle. It leaves desktop apps and Hyprland visuals untouched, unloads Ollama models, and stops `hermes-gateway` / `hermes-dashboard`. Turning it off restores the recorded containers; Ollama reloads models on demand. It POSTs Home Assistant gaming webhooks whose IDs come from `~/.config/ha-pc.env`. OpenWebUI is retired from the compose stack and from this toggle.
 - Hyprland binds are HE68-shaped: no Print/F-row/media keys. Screenshots are Super+P / Super+Shift+P. Volume is Super+= / Super+-. Windows mode required (Fn+W).
 
 ## Durable decisions

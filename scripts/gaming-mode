@@ -3,18 +3,28 @@ set -euo pipefail
 
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/midnight-gaming-mode"
 state_file="$state_dir/active"
-# OpenWebUI was retired from ~/hermes-docker. Glances/stats stay up so HA
+# OpenWebUI was retired from ~/hermes-docker. Heartbeat/stats stay up so HA
 # still sees GPU load during a game.
 containers=(hermes-gateway hermes-dashboard)
-ha_lan="http://192.168.68.56:8123"
-ha_ts="http://100.109.84.121:8123"
+ha_env="${HA_PC_ENV:-$HOME/.config/ha-pc.env}"
 
 notify() {
   command -v notify-send >/dev/null && notify-send "Gaming Mode" "$1" || true
 }
 
+load_ha_pc_env() {
+  [[ -r "$ha_env" ]] || return 0
+  set -a
+  # shellcheck disable=SC1090
+  source "$ha_env"
+  set +a
+}
+
 ha_webhook() {
-  local id="$1"
+  local id="${1:-}"
+  [[ -n "$id" ]] || return 0
+  local ha_lan="${HA_URL:-http://192.168.68.56:8123}"
+  local ha_ts="${HA_TS_URL:-http://100.109.84.121:8123}"
   curl -sS -m 3 -X POST "$ha_lan/api/webhook/$id" >/dev/null 2>&1 \
     || curl -sS -m 3 -X POST "$ha_ts/api/webhook/$id" >/dev/null 2>&1 \
     || true
@@ -45,7 +55,7 @@ enable() {
     done
   fi
 
-  ha_webhook midnight_gaming_start
+  ha_webhook "${HA_WEBHOOK_GAMING_START:-}"
   notify "On — local AI models and background services paused"
   echo "Gaming Mode is on"
 }
@@ -56,10 +66,12 @@ disable() {
     [[ "$kind" == container ]] && docker start "$value" >/dev/null 2>&1 || true
   done <"$state_file"
   rm -f "$state_file"
-  ha_webhook midnight_gaming_end
+  ha_webhook "${HA_WEBHOOK_GAMING_END:-}"
   notify "Off — recorded background services restored"
   echo "Gaming Mode is off"
 }
+
+load_ha_pc_env
 
 case "${1:-toggle}" in
   on) enable ;;

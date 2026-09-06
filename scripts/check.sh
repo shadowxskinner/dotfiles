@@ -16,6 +16,13 @@ if grep -q openwebui scripts/gaming-mode; then
   echo "OpenWebUI is retired and must not appear in gaming-mode" >&2
   exit 1
 fi
+for stale_id in midnight_pc_stats midnight_gaming_start midnight_gaming_end; do
+  if grep -q "$stale_id" scripts/gaming-mode; then
+    echo "Stale webhook id $stale_id must not appear in gaming-mode" >&2
+    exit 1
+  fi
+done
+grep -q ha-pc.env scripts/gaming-mode
 test_state="$(mktemp -d)"
 trap 'rm -rf "$test_state"' EXIT
 [[ "$(XDG_STATE_HOME="$test_state" scripts/gaming-mode status)" == off ]]
