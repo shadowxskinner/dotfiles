@@ -9,20 +9,6 @@ notify() {
   command -v notify-send >/dev/null && notify-send "Gaming Mode" "$1" || true
 }
 
-close_ai_windows() {
-  command -v hyprctl >/dev/null || return 0
-  while IFS= read -r address; do
-    [[ -n "$address" ]] && hyprctl dispatch closewindow "address:$address" >/dev/null || true
-  done < <(
-    hyprctl clients -j 2>/dev/null | python3 -c '
-import json, sys
-for window in json.load(sys.stdin):
-    if str(window.get("class", "")).lower() in {"chatgpt", "claude"}:
-        print(window.get("address", ""))
-' 2>/dev/null || true
-  )
-}
-
 enable() {
   [[ ! -e "$state_file" ]] || { echo "Gaming Mode is already on"; return; }
   mkdir -p "$state_dir"
@@ -48,10 +34,7 @@ enable() {
     done
   fi
 
-  close_ai_windows
-  hyprctl keyword decoration:blur:enabled false >/dev/null 2>&1 || true
-  hyprctl keyword animations:enabled false >/dev/null 2>&1 || true
-  notify "On — AI services paused and desktop effects reduced"
+  notify "On — local AI models and background services paused"
   echo "Gaming Mode is on"
 }
 
@@ -61,8 +44,7 @@ disable() {
     [[ "$kind" == container ]] && docker start "$value" >/dev/null 2>&1 || true
   done <"$state_file"
   rm -f "$state_file"
-  hyprctl reload >/dev/null 2>&1 || true
-  notify "Off — recorded services restored and desktop effects reloaded"
+  notify "Off — recorded background services restored"
   echo "Gaming Mode is off"
 }
 
