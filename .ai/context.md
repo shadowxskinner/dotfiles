@@ -21,6 +21,7 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 - Hyprland asks GTK, Qt, and xdg-desktop-portal for dark style (`prefer-dark`) and uses a 12-hour GTK clock. KDE already uses Breeze Dark; this does not change SDDM.
 - Window borders follow `theme-set`: Dragon red, Reaper grey. `hypr-theme-apply` runs on Hyprland start and reload so Reaper cannot keep a leftover Dragon border.
 - `gaming-mode` is an explicit `Super+G` toggle. It leaves desktop apps and Hyprland visuals untouched, unloads Ollama models, and stops only running Hermes containers. Turning it off restores the recorded containers; Ollama reloads models on demand.
+- Hyprland binds are HE68-shaped: no Print/F-row/media keys. Screenshots are Super+P / Super+Shift+P. Volume is Super+= / Super+-. Windows mode required (Fn+W).
 
 ## Durable decisions
 
@@ -31,4 +32,3 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 ## Next step
 
 - Keep rice work in this repo separate from the Wallpaper Engine backend until other scenes are requested.
-- Hyprland binds are HE68-shaped: no Print/F-row/media keys. Screenshots are Super+P / Super+Shift+P. Volume is Super+= / Super+-. Windows mode required (Fn+W).
