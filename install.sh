@@ -69,6 +69,11 @@ if command -v dms >/dev/null; then
   dms ipc call plugins enable sessionPower >/dev/null || true
   dms ipc call plugins disable sessionKde >/dev/null || true
   dms ipc call plugins disable sessionWindows >/dev/null || true
+  # hyprctl reload does not restart the bar. DMS has to be restarted to show new pills.
+  dms restart >/dev/null 2>&1 || true
+fi
+if command -v hyprctl >/dev/null; then
+  hyprctl reload >/dev/null 2>&1 || true
 fi
 
 if [[ "${INSTALL_SESSION_HELPER:-0}" == 1 ]]; then
@@ -91,7 +96,12 @@ deploy_file gtk-3.0/settings.ini
 deploy_file gtk-4.0/settings.ini
 deploy_file xdg-desktop-portal/hyprland-portals.conf
 
-echo "Configuration installed. Log out and select Hyprland in SDDM."
-echo "KDE and its autologin configuration were not changed."
+echo "Configuration installed."
+echo "This preview is Hyprland-only. KDE autologin was not changed."
+echo "If you are in a Hyprland session, the bar should show Lights and Power after DMS restarts."
+echo "Open the menu with Super+K even if the pills are missing: session-switch menu"
+if command -v notify-send >/dev/null; then
+  notify-send "Dotfiles preview" "Hyprland: Super+K opens the power menu. The bar needs DMS restarted."
+fi
 echo "Copy homeassistant/midnight_lighting.yaml to ~/hermes/homeassistant and HA packages."
 echo "Add HA_WEBHOOK_LIGHTS_MODE to ~/.config/ha-pc.env; never commit the webhook id."

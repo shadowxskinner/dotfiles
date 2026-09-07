@@ -38,31 +38,35 @@ PluginComponent {
     }
 
     horizontalBarPill: Component {
-        Item {
-            implicitWidth: icon.implicitWidth + Theme.spacingM * 2
+        StyledRect {
+            width: label.implicitWidth + Theme.spacingM * 2
             height: parent.widgetThickness
+            radius: Theme.cornerRadius
+            color: Theme.surfaceContainerHigh
 
-            DankIcon {
-                id: icon
+            StyledText {
+                id: label
                 anchors.centerIn: parent
-                name: "lightbulb"
-                size: Theme.iconSize
+                text: "Lights"
                 color: Theme.surfaceText
+                font.pixelSize: Theme.fontSizeMedium
             }
         }
     }
 
     verticalBarPill: Component {
-        Item {
-            implicitWidth: parent.widgetThickness
-            implicitHeight: icon.implicitHeight + Theme.spacingM * 2
+        StyledRect {
+            width: parent.widgetThickness
+            height: label.implicitHeight + Theme.spacingM * 2
+            radius: Theme.cornerRadius
+            color: Theme.surfaceContainerHigh
 
-            DankIcon {
-                id: icon
+            StyledText {
+                id: label
                 anchors.centerIn: parent
-                name: "lightbulb"
-                size: Theme.iconSize
+                text: "💡"
                 color: Theme.surfaceText
+                font.pixelSize: Theme.fontSizeMedium
             }
         }
     }
