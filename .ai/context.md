@@ -48,6 +48,22 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 - Nothing is throttling. CPU is `amd-pstate-epp` with the `powersave` governor and
   `EPP=balance_performance`, which is the normal active mode on this driver, not a
   throttle. GPU `power_dpm_force_performance_level` is `auto`.
+- Games were capped at 1440p, not running at 4K. 3840x2160 at scale 1.5 gives a
+  2560x1440 logical size, and XWayland hands the logical size to X11 clients:
+  `xrandr` reported 2560x1440 as the *maximum* mode, so Steam and every Proton
+  title rendered at 1440p and were upscaled by the compositor. `xwayland {
+  force_zero_scaling = true }` addresses this. It costs X11 UI scaling, so Steam
+  needs `-forcedesktopscaling 1.5`.
+- `force_zero_scaling` takes effect on an explicit `hyprctl reload`; no relogin is
+  needed. Hyprland's config auto-reload does not reliably fire for edits made by
+  an external tool, so `hyprctl getoption xwayland:force_zero_scaling` read
+  `int: 0, set: false` until reload was run by hand. Verified after reload:
+  `int: 1, set: true` and `xrandr` reporting `3840x2160`.
+- XWayland vs Wayland-native is what decided this, not Flatpak vs native. The
+  running Wayland-native clients (`com.danklinux.dms`, `com.anthropic.Claude`,
+  `kitty`) all report `xwayland: false` and were never capped. Packaging format is
+  irrelevant to the resolution question; removing the Steam Flatpak would not have
+  fixed it.
 
 ## Durable decisions
 
