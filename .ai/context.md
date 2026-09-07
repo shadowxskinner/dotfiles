@@ -23,12 +23,19 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 - `gaming-mode-watch.service` listens to Hyprland window events and activates Gaming Mode for Steam/Lutris games, Gamescope, PCSX2, RPCS3, Dolphin, RetroArch, DuckStation, Xemu, Cemu, Ryujinx, Yuzu, and Suyu. It restores only recorded Hermes containers after the last game closes. `Super+G` remains a manual override, apps and visual effects stay open, and the DMS Control Center tile reflects the same state without occupying the bar. Home Assistant webhook IDs come from the local mode-600 `~/.config/ha-pc.env`, never Git.
 - `session-switch` is the Bazzite-style picker: DMS Control Center tiles, Waybar ⇄, and `Super+K`. KDE is a one-shot SDDM Plasma login for Sunshine/Moonlight. Windows 11 is EFI BootNext only; BootOrder stays Linux-first. Lasting SDDM autologin is unchanged.
 - Hyprland binds are HE68-shaped: no Print/F-row/media keys. Screenshots are Super+P / Super+Shift+P. Volume is Super+= / Super+-. Session switch is Super+K. Windows mode required (Fn+W).
-- The `games-fullscreen` windowrule forces real fullscreen and opaque, unblurred
-  rendering for `steam_app_*`, Gamescope, and the emulators. Steam launches most
-  titles borderless, which Hyprland does not count as fullscreen: that single
-  fact blocked `solitary` and direct scanout, kept the DMS bar drawn over the
-  game, and stopped `linux-wallpaperengine`'s existing
-  `--fullscreen-pause-only-active` from ever firing. One rule fixes all four.
+- The `games-fullscreen` windowrule forces real fullscreen for `steam_app_*`,
+  Gamescope, and the emulators. Steam launches most titles borderless, which
+  Hyprland does not count as fullscreen: that single fact blocked `solitary` and
+  direct scanout, kept the DMS bar drawn over the game, and stopped
+  `linux-wallpaperengine`'s existing `--fullscreen-pause-only-active` from ever
+  firing. One rule fixes all four. It deliberately sets only `fullscreen`, since
+  `fullscreen_opacity = 1.0` then makes the window opaque and nothing blurs
+  behind an opaque fullscreen window.
+- New-style rule blocks accept far fewer properties than the old `windowrulev2`
+  keywords. `no_border`, `no_blur`, `no_shadow` and `idle_inhibit` are all
+  rejected with "config option does not exist". Verify any rule change against
+  the running compositor before trusting it; Hyprland auto-reloads on save and
+  banners the first bad option.
 - Measured on 4K/165 before the rule: kawase blur (size 12, passes 4) cost ~3.7
   points of GPU at an idle desktop, and `linux-wallpaperengine` cost ~3.6% of GPU
   time plus 802 MiB of VRAM. `active_opacity` is 0.78, so a borderless game was
