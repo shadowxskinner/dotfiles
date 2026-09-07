@@ -78,6 +78,29 @@ rm -rf "$test_state"
 trap - EXIT
 git diff --check
 
+python3 - <<'PY'
+from pathlib import Path
+
+conf = Path(".config/hypr/hyprland.conf").read_text()
+drop_in = Path(".config/systemd/user/hyprpolkitagent.service.d/hyprland-only.conf").read_text()
+if "ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE" not in drop_in:
+    raise SystemExit("hyprpolkitagent drop-in must skip non-Hyprland sessions")
+
+ordered = False
+for line in conf.splitlines():
+    stripped = line.strip()
+    if not stripped.startswith("exec-once"):
+        continue
+    env_at = stripped.find("dbus-update-activation-environment")
+    start_at = stripped.find("start hyprpolkitagent")
+    if start_at != -1 and (env_at == -1 or env_at > start_at):
+        raise SystemExit("hyprpolkitagent must start after dbus-update-activation-environment")
+    if env_at != -1 and start_at != -1:
+        ordered = True
+if not ordered:
+    raise SystemExit("hyprland.conf must export systemd env before starting hyprpolkitagent")
+PY
+
 if command -v Hyprland >/dev/null; then
   Hyprland --verify-config -c "$repo_dir/.config/hypr/hyprland.conf"
 fi
@@ -88,6 +111,7 @@ for required in .config/hypr/hyprland.conf .config/waybar/config .config/waybar/
                 .config/gtk-4.0/settings.ini \
                 .config/xdg-desktop-portal/hyprland-portals.conf \
                 .config/systemd/user/gaming-mode-watch.service \
+                .config/systemd/user/hyprpolkitagent.service.d/hyprland-only.conf \
                 .config/DankMaterialShell/plugins/GamingMode/plugin.json \
                 .config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml \
                 scripts/gaming-mode AGENTS.md .ai/context.md; do
