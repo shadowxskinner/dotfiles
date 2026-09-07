@@ -1,0 +1,12 @@
+{
+  "id": "sessionKde",
+  "name": "Switch to KDE",
+  "description": "Leave Hyprland and start Plasma for Sunshine/Moonlight",
+  "version": "1.0.0",
+  "author": "Shadow",
+  "type": "widget",
+  "capabilities": ["control-center"],
+  "component": "./SessionKdeWidget.qml",
+  "icon": "desktop_windows",
+  "permissions": ["process"]
+}

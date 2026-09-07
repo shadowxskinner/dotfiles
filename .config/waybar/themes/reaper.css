@@ -137,6 +137,7 @@ window#waybar {
     padding: 0 6px;
 }
 
+#status #custom-session,
 #status #network,
 #status #bluetooth,
 #status #pulseaudio,

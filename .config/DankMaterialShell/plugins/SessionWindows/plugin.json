@@ -1,0 +1,12 @@
+{
+  "id": "sessionWindows",
+  "name": "Reboot to Windows",
+  "description": "One-shot reboot into Windows 11, then back to Linux",
+  "version": "1.0.0",
+  "author": "Shadow",
+  "type": "widget",
+  "capabilities": ["control-center"],
+  "component": "./SessionWindowsWidget.qml",
+  "icon": "restart_alt",
+  "permissions": ["process"]
+}

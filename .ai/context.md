@@ -21,11 +21,13 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 - Hyprland asks GTK, Qt, and xdg-desktop-portal for dark style (`prefer-dark`) and uses a 12-hour GTK clock. KDE already uses Breeze Dark; this does not change SDDM.
 - Window borders follow `theme-set`: Dragon red, Reaper grey. `hypr-theme-apply` runs on Hyprland start and reload so Reaper cannot keep a leftover Dragon border.
 - `gaming-mode-watch.service` listens to Hyprland window events and activates Gaming Mode for Steam/Lutris games, Gamescope, PCSX2, RPCS3, Dolphin, RetroArch, DuckStation, Xemu, Cemu, Ryujinx, Yuzu, and Suyu. It restores only recorded Hermes containers after the last game closes. `Super+G` remains a manual override, apps and visual effects stay open, and the DMS Control Center tile reflects the same state without occupying the bar. Home Assistant webhook IDs come from the local mode-600 `~/.config/ha-pc.env`, never Git.
-- Hyprland binds are HE68-shaped: no Print/F-row/media keys. Screenshots are Super+P / Super+Shift+P. Volume is Super+= / Super+-. Windows mode required (Fn+W).
+- `session-switch` is the Bazzite-style picker: DMS Control Center tiles, Waybar ⇄, and `Super+K`. KDE is a one-shot SDDM Plasma login for Sunshine/Moonlight. Windows 11 is EFI BootNext only; BootOrder stays Linux-first. Lasting SDDM autologin is unchanged.
+- Hyprland binds are HE68-shaped: no Print/F-row/media keys. Screenshots are Super+P / Super+Shift+P. Volume is Super+= / Super+-. Session switch is Super+K. Windows mode required (Fn+W).
 
 ## Durable decisions
 
 - Hyprland is a second SDDM session; KDE remains the fallback and Sunshine autologin target.
+- Session switching uses one-shot Plasma autologin and one-shot Windows BootNext, never a lasting BootOrder or autologin change.
 - Reuse the theme manager in `wayland-kde-build`; only its wallpaper backend differs by session.
 - Do not push local commits without an explicit request.
 

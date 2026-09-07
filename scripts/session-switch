@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# Bazzite-style session picker for Midnight-PC.
+# menu     — Wofi: Switch to KDE, or reboot to Windows 11
+# kde      — leave Hyprland and land in Plasma for Sunshine/Moonlight
+# windows  — one-shot reboot into Windows Boot Manager (next Linux boot is unchanged)
+# status   — current desktop, Windows boot entry, helper install
+set -euo pipefail
+
+helper=/usr/local/bin/midnight-session-helper
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/theme-manager"
+
+usage() {
+  echo "usage: session-switch menu|kde|windows|status" >&2
+  exit 2
+}
+
+notify() {
+  command -v notify-send >/dev/null && notify-send "Session switch" "$1" || true
+}
+
+on_hyprland() {
+  local desktop="${XDG_CURRENT_DESKTOP:-}"
+  [[ "${desktop,,}" == *hyprland* ]] && return 0
+  command -v pgrep >/dev/null && pgrep -x Hyprland >/dev/null
+}
+
+wofi_style() {
+  local theme=dragon path fallback
+  if [[ -f "$state_dir/current" ]]; then
+    theme="$(tr -d '[:space:]' <"$state_dir/current")"
+    theme="${theme:-dragon}"
+  fi
+  path="$HOME/.config/wofi/themes/${theme}.css"
+  [[ -f "$path" ]] && { echo "$path"; return; }
+  fallback="$HOME/.config/wofi/style.css"
+  [[ -f "$fallback" ]] && echo "$fallback"
+}
+
+pick_menu() {
+  local args=(wofi --dmenu --prompt "Switch session" --lines 4 --width 420 --location center)
+  local style
+  style="$(wofi_style || true)"
+  [[ -n "$style" ]] && args+=(--style "$style")
+  on_hyprland && args+=(-D close_on_focus_loss=false)
+  printf '%s\n' "Switch to KDE" "Reboot to Windows 11" | "${args[@]}"
+}
+
+confirm() {
+  local text="$1"
+  if [[ "${SESSION_SWITCH_YES:-}" == 1 ]]; then
+    return 0
+  fi
+  if command -v zenity >/dev/null; then
+    zenity --question --title="Session switch" --text="$text" --ok-label="Switch" --cancel-label="Cancel"
+    return
+  fi
+  local args=(wofi --dmenu --prompt "Session switch" --lines 3 --width 420 --location center) style choice
+  style="$(wofi_style || true)"
+  [[ -n "$style" ]] && args+=(--style "$style")
+  on_hyprland && args+=(-D close_on_focus_loss=false)
+  choice="$(printf '%s\n' "Switch" "Cancel" | "${args[@]}")"
+  [[ "$choice" == Switch ]]
+}
+
+windows_boot_id() {
+  efibootmgr 2>/dev/null | awk -F'*' '
+    /Windows Boot Manager/ {
+      id = $1
+      sub(/^Boot/, "", id)
+      gsub(/[[:space:]]/, "", id)
+      print id
+      exit
+    }
+  '
+}
+
+run_helper() {
+  local action="$1"
+  if [[ "${SESSION_SWITCH_DRY_RUN:-}" == 1 ]]; then
+    echo "would pkexec $helper $action"
+    return 0
+  fi
+  if [[ ! -x "$helper" ]]; then
+    notify "Install the session helper first (sudo from install.sh)"
+    echo "missing $helper — rerun ./scripts/install-hyprland-packages.sh and ./install.sh" >&2
+    exit 1
+  fi
+  pkexec "$helper" "$action"
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  status)
+    printf 'desktop: %s\n' "${XDG_CURRENT_DESKTOP:-unknown}"
+    boot_id="$(windows_boot_id || true)"
+    if [[ -n "$boot_id" ]]; then
+      printf 'windows-boot: %s Windows Boot Manager\n' "$boot_id"
+    else
+      echo 'windows-boot: missing'
+    fi
+    if [[ -x "$helper" ]]; then
+      echo 'helper: installed'
+    else
+      echo 'helper: missing'
+    fi
+    ;;
+  menu)
+    choice="$(pick_menu || true)"
+    case "$choice" in
+      "Switch to KDE") exec "$0" kde ;;
+      "Reboot to Windows 11") exec "$0" windows ;;
+      *) exit 0 ;;
+    esac
+    ;;
+  kde)
+    if ! on_hyprland; then
+      notify "Already outside Hyprland"
+      echo "already not in Hyprland (${XDG_CURRENT_DESKTOP:-unknown})" >&2
+      exit 0
+    fi
+    confirm "Leave Hyprland and start KDE Plasma for Moonlight / Sunshine?" || exit 0
+    run_helper kde
+    ;;
+  windows)
+    boot_id="$(windows_boot_id || true)"
+    if [[ ! "$boot_id" =~ ^[0-9A-Fa-f]{4}$ ]]; then
+      notify "Windows Boot Manager was not found"
+      echo "Windows Boot Manager was not found in efibootmgr" >&2
+      exit 1
+    fi
+    confirm "Reboot into Windows 11 now? The next boot after that still returns to Linux." || exit 0
+    run_helper windows
+    ;;
+  *)
+    usage
+    ;;
+esac

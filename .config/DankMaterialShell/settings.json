@@ -17,7 +17,9 @@
     {"id": "audioInput", "enabled": true, "width": 50},
     {"id": "nightMode", "enabled": true, "width": 50},
     {"id": "darkMode", "enabled": true, "width": 50},
-    {"id": "plugin_gamingMode", "enabled": true, "width": 50}
+    {"id": "plugin_gamingMode", "enabled": true, "width": 50},
+    {"id": "plugin_sessionKde", "enabled": true, "width": 50},
+    {"id": "plugin_sessionWindows", "enabled": true, "width": 50}
   ],
   "waveProgressEnabled": false,
   "audioVisualizerEnabled": false,

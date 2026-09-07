@@ -57,7 +57,12 @@
   },
   "group/status": {
     "orientation": "horizontal",
-    "modules": ["network", "bluetooth", "pulseaudio", "pulseaudio#mic", "tray"]
+    "modules": ["custom/session", "network", "bluetooth", "pulseaudio", "pulseaudio#mic", "tray"]
+  },
+  "custom/session": {
+    "format": "⇄",
+    "tooltip-format": "Switch to KDE or reboot to Windows 11",
+    "on-click": "session-switch menu"
   },
   "network": {
     "format-wifi": "📶",

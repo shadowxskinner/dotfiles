@@ -28,8 +28,9 @@ exists. Git history remains the recovery path for both.
 
 Run the package script in a visible terminal so `sudo` can ask for your password. It installs tagged
 packages from Arch's official repositories. The config installer backs up an existing
-`~/.config/hypr` or `~/.config/waybar`, then links this repository. Neither script changes SDDM,
-changes KDE, or publishes anything.
+`~/.config/hypr` or `~/.config/waybar`, then links this repository. `install.sh` also installs
+`session-switch` and a pkexec helper so Hyprland can one-shot Plasma (Moonlight) or Windows 11.
+That helper does not change lasting SDDM autologin, KDE, the EFI BootOrder, or publish anything.
 
 ## First login
 
@@ -50,6 +51,7 @@ Mac mode makes Super arrive as Alt and every bind goes dead.
 - Full screenshot: `Super+Shift+P`
 - Volume up / down / mute: `Super+=` / `Super+-` / `Super+M`
 - Toggle Gaming Mode: `Super+G`
+- Switch session (KDE or Windows 11): `Super+K`
 
 Gaming Mode leaves desktop apps and Hyprland visuals untouched. It activates automatically for
 Steam games, Lutris/Wine games, Gamescope, and the installed emulators, then restores only the
@@ -61,8 +63,16 @@ another permanent icon to the bar.
 Home Assistant webhook IDs come from `~/.config/ha-pc.env`, never Git. OpenWebUI is not part of
 this stack.
 
-The tracked DMS settings keep Gaming Mode in Control Center and hide the redundant red Ethernet
-status glyph from the bar. Ethernet remains available inside Control Center.
+The tracked DMS settings keep Gaming Mode, Switch to KDE, and Reboot to Windows in Control
+Center, and hide the redundant red Ethernet status glyph from the bar. Ethernet remains
+available inside Control Center.
+
+`session-switch` is the Bazzite-style picker. **Switch to KDE** restarts SDDM into Plasma
+once so Sunshine/Moonlight can capture the desktop, then removes that one-shot autologin.
+**Reboot to Windows** sets EFI BootNext to Windows Boot Manager and reboots; the next boot
+after Windows still follows the Linux-first BootOrder. Confirm the dialog before either
+action. Waybar rollback exposes the same menu on the ⇄ button. Run `session-switch status`
+to see the detected Windows entry and whether the pkexec helper is installed.
 
 The existing timed theme manager and Wofi styles live in `wayland-kde-build`. Hyprland Wallpaper
 Engine rendering is enabled there through `linux-wallpaperengine`. Dragon and Reaper are the active,
