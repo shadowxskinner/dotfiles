@@ -140,11 +140,17 @@ hl.layer_rule({
     dim_around   = true,
 })
 
+-- The bar's namespace is dms:bar, not waybar. The old waybar rule carried over
+-- from the .conf and matched nothing, so the bar never got its blur.
+-- xray = true is what DMS's own generated layout.lua asks for: blur samples the
+-- wallpaper only, ignoring windows scrolling underneath. Drop it if you'd rather
+-- the bar blur whatever is behind it.
 hl.layer_rule({
-    name         = "waybar-chrome",
-    match        = { namespace = "waybar" },
+    name         = "dms-bar-chrome",
+    match        = { namespace = "^dms:bar$" },
     blur         = true,
     ignore_alpha = 0.05,
+    xray         = true,
 })
 
 --------------------------------------------------------------------------------
@@ -156,6 +162,13 @@ hl.layer_rule({
 -- Real fullscreen fixes all four. fullscreen_opacity = 1.0 above then makes the
 -- window opaque, which also stops blur running behind it.
 --------------------------------------------------------------------------------
+
+-- From DMS's generated windowrules.lua: its own panels/dialogs want to float.
+hl.window_rule({
+    name  = "dms-floating-windows",
+    match = { class = "^com.danklinux.dms$" },
+    float = true,
+})
 
 hl.window_rule({
     name  = "games-fullscreen",
