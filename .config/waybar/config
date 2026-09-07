@@ -1,112 +1,23 @@
 {
   "layer": "top",
-  "position": "top",
-  "height": 36,
-  "margin-top": 8,
+  "position": "bottom",
+  "height": 42,
+  "margin-bottom": 10,
   "margin-left": 10,
   "margin-right": 10,
-  "spacing": 0,
+  "spacing": 8,
   "reload_style_on_change": true,
-  "modules-left": ["hyprland/workspaces", "group/media"],
-  "modules-center": ["clock"],
-  "modules-right": ["custom/lights", "custom/session", "custom/swaync", "group/status"],
-  "hyprland/workspaces": {
-    "disable-scroll": true,
-    "on-click": "activate",
-    "format": "{id}",
-    "persistent-workspaces": {
-      "*": [1, 2, 3, 4, 5]
-    }
-  },
-  "group/media": {
-    "orientation": "horizontal",
-    "modules": ["mpris", "custom/player"]
-  },
-  "mpris": {
-    "format": "{artist} - {title}",
-    "format-paused": "{artist} - {title}",
-    "format-stopped": "",
-    "tooltip-format": "{player}: {artist} — {title}",
-    "title-len": 28,
-    "artist-len": 18,
-    "album-len": 0,
-    "ellipsis": "…",
-    "max-length": 42,
-    "on-click": "play-pause",
-    "on-click-right": "next",
-    "on-click-middle": "previous"
-  },
-  "custom/player": {
-    "exec": "$HOME/.config/waybar/player-button.py",
-    "return-type": "json",
-    "interval": 1,
-    "on-click": "playerctl play-pause",
-    "on-click-right": "playerctl next",
-    "on-click-middle": "playerctl previous"
-  },
-  "clock": {
-    "format": "{:%I:%M %p  |  %a %d}",
-    "tooltip-format": "{:%A, %B %d, %Y}"
-  },
+  "modules-left": [],
+  "modules-center": ["custom/lights", "custom/session"],
+  "modules-right": [],
   "custom/lights": {
-    "format": "💡",
+    "format": "Lights",
     "tooltip-format": "Home Assistant lighting modes",
     "on-click": "$HOME/.local/bin/ha-lights menu"
   },
   "custom/session": {
-    "format": "⏻",
+    "format": "Power",
     "tooltip-format": "Power and session menu",
     "on-click": "$HOME/.local/bin/session-switch menu"
-  },
-  "custom/swaync": {
-    "exec": "swaync-client -c",
-    "interval": 2,
-    "tooltip": false,
-    "on-click": "swaync-client -t",
-    "on-click-right": "swaync-client -d"
-  },
-  "group/status": {
-    "orientation": "horizontal",
-    "modules": ["network", "bluetooth", "pulseaudio", "pulseaudio#mic", "tray"]
-  },
-  "network": {
-    "format-wifi": "📶",
-    "format-ethernet": "📶",
-    "format-disconnected": "📶",
-    "tooltip-format-wifi": "{essid}: {ipaddr}",
-    "tooltip-format-ethernet": "LAN {ifname}: {ipaddr}",
-    "tooltip-format-disconnected": "offline",
-    "on-click": "sh -c '$HOME/.config/waybar/wifi-menu'",
-    "on-click-right": "nm-connection-editor"
-  },
-  "bluetooth": {
-    "format": "ᛒ",
-    "format-off": "ᛒ",
-    "format-on": "ᛒ",
-    "format-connected": "ᛒ",
-    "format-disabled": "ᛒ",
-    "tooltip-format": "{status}",
-    "tooltip-format-connected": "{device_enumerate}",
-    "tooltip-format-enumerate-connected": "{device_alias}",
-    "on-click": "sh -c '$HOME/.config/waybar/bluetooth-menu'"
-  },
-  "pulseaudio": {
-    "format": "🔊 {volume}%",
-    "format-muted": "🔇 mute",
-    "tooltip-format": "{desc}",
-    "on-click": "pavucontrol",
-    "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
-    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-  },
-  "pulseaudio#mic": {
-    "format": "{format_source}",
-    "format-source": "",
-    "format-source-muted": "Off",
-    "tooltip-format": "mic: {desc}",
-    "on-click": "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-  },
-  "tray": {
-    "spacing": 8,
-    "icon-size": 15
   }
 }

@@ -135,8 +135,8 @@ window#waybar {
 #custom-lights,
 #custom-session,
 #custom-swaync {
-    padding: 0 12px;
-    font-weight: 600;
+    padding: 0 22px;
+    font-weight: 700;
 }
 
 #status {

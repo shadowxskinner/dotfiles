@@ -22,7 +22,10 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 - Window borders follow `theme-set`: Dragon red, Reaper grey. `hypr-theme-apply` runs on Hyprland start and reload so Reaper cannot keep a leftover Dragon border.
 - `gaming-mode-watch.service` listens to Hyprland window events and activates Gaming Mode for Steam/Lutris games, Gamescope, PCSX2, RPCS3, Dolphin, RetroArch, DuckStation, Xemu, Cemu, Ryujinx, Yuzu, and Suyu. It restores only recorded Hermes containers after the last game closes. `Super+G` remains a manual override, apps and visual effects stay open, and the DMS Control Center tile reflects the same state without occupying the bar. Home Assistant webhook IDs come from the local mode-600 `~/.config/ha-pc.env`, never Git.
 - DMS 1.6 powermenu IPC is open/close/toggle only. Session-ending actions use `session-switch menu` (Lock, Suspend, Log out, Shut down, Reboot Linux, one-shot KDE, one-shot Windows 11). The DMS bar power pill and Waybar fallback call that menu. KDE/Windows are not Control Center tiles. Windows uses EFI BootNext only. The pkexec helper is opt-in and is not installed by default.
-- Lighting modes are a DMS bar pill (`plugin_lights`) plus Waybar `custom/lights`. `ha-lights` posts allowlisted mode tokens only. Copy `homeassistant/midnight_lighting.yaml` onto HA via `~/hermes/homeassistant`. `script.lights_gaming` is the confirmed entity; other UI scripts are resolved by friendly name.
+- Lighting modes are a bottom Waybar strip (`Lights` / `Power`) in this preview, because DMS
+  bar plugins are easy to miss and the live top bar is DMS. `ha-lights` posts allowlisted mode
+  tokens only. Copy `homeassistant/midnight_lighting.yaml` onto HA via `~/hermes/homeassistant`.
+  `script.lights_gaming` is the confirmed entity; other UI scripts are resolved by friendly name.
 - Hyprland binds are HE68-shaped: no Print/F-row/media keys. Screenshots are Super+P / Super+Shift+P. Volume is Super+= / Super+-. Power/session menu is Super+Shift+Q or Super+K. Windows mode required (Fn+W).
 
 ## Durable decisions

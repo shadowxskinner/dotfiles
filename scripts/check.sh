@@ -51,6 +51,10 @@ grep -q 'session-switch menu' .config/waybar/config
 grep -q 'session-switch menu' .config/hypr/hyprland.conf
 grep -q 'ha-lights menu' .config/waybar/config
 grep -q 'custom/lights' .config/waybar/config
+grep -q '"format": "Lights"' .config/waybar/config
+grep -q '"format": "Power"' .config/waybar/config
+grep -q '"position": "bottom"' .config/waybar/config
+grep -qE 'hypr-waybar|exec waybar' .config/hypr/hyprland.conf
 if grep -qE 'bind = \$mainMod SHIFT, Q, exit' .config/hypr/hyprland.conf; then
   echo "Super+Shift+Q must open the confirming power menu" >&2
   exit 1

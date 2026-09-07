@@ -96,12 +96,23 @@ deploy_file gtk-3.0/settings.ini
 deploy_file gtk-4.0/settings.ini
 deploy_file xdg-desktop-portal/hyprland-portals.conf
 
+if pgrep -x Hyprland >/dev/null 2>&1; then
+  hyprctl reload >/dev/null 2>&1 || true
+  pkill -x waybar >/dev/null 2>&1 || true
+  if command -v hypr-waybar >/dev/null; then
+    hypr-waybar >/dev/null 2>&1 &
+  elif command -v waybar >/dev/null; then
+    waybar >/dev/null 2>&1 &
+  fi
+  disown -a >/dev/null 2>&1 || true
+fi
+
 echo "Configuration installed."
 echo "This preview is Hyprland-only. KDE autologin was not changed."
-echo "If you are in a Hyprland session, the bar should show Lights and Power after DMS restarts."
-echo "Open the menu with Super+K even if the pills are missing: session-switch menu"
+echo "Look at the BOTTOM of the screen for Waybar buttons: Lights and Power."
+echo "Super+K also opens the power menu."
 if command -v notify-send >/dev/null; then
-  notify-send "Dotfiles preview" "Hyprland: Super+K opens the power menu. The bar needs DMS restarted."
+  notify-send "Dotfiles preview" "Bottom Waybar: Lights and Power. Super+K opens the menu."
 fi
 echo "Copy homeassistant/midnight_lighting.yaml to ~/hermes/homeassistant and HA packages."
 echo "Add HA_WEBHOOK_LIGHTS_MODE to ~/.config/ha-pc.env; never commit the webhook id."

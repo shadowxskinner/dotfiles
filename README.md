@@ -67,13 +67,13 @@ status glyph from the bar. Ethernet remains available inside Control Center.
 
 DMS 1.6 `powermenu` IPC only exposes open/close/toggle, with no supported custom-action
 extension. Switch to KDE and Reboot to Windows therefore live in `session-switch menu`
-together with Lock, Suspend, Log out, Shut down, and Reboot Linux. The DMS bar power pill,
-the Waybar fallback power button, `Super+K`, and `Super+Shift+Q` all open that confirming menu.
-KDE is a one-shot SDDM Plasma login for Sunshine/Moonlight. Windows 11 is EFI BootNext only.
+together with Lock, Suspend, Log out, Shut down, and Reboot Linux. A bottom Waybar strip
+shows **Lights** and **Power**; those open the same menus. `Super+K` and `Super+Shift+Q`
+also open Power. KDE is a one-shot SDDM Plasma login for Sunshine/Moonlight. Windows 11
+is EFI BootNext only.
 
-A DMS bar lightbulb opens the Home Assistant lighting-mode picker. Waybar rollback uses
-`custom/lights` → `ha-lights menu`. The desktop posts only an allowlisted mode token to a
-local webhook; entity IDs stay in Home Assistant. Copy
+Click **Lights** for the Home Assistant mode picker. The desktop posts only an allowlisted
+mode token to a local webhook; entity IDs stay in Home Assistant. Copy
 `homeassistant/midnight_lighting.yaml` to `~/hermes/homeassistant` and HA packages, and put
 `HA_WEBHOOK_LIGHTS_MODE` in `~/.config/ha-pc.env`.
 
