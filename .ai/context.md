@@ -23,6 +23,24 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 - `gaming-mode-watch.service` listens to Hyprland window events and activates Gaming Mode for Steam/Lutris games, Gamescope, PCSX2, RPCS3, Dolphin, RetroArch, DuckStation, Xemu, Cemu, Ryujinx, Yuzu, and Suyu. It restores only recorded Hermes containers after the last game closes. `Super+G` remains a manual override, apps and visual effects stay open, and the DMS Control Center tile reflects the same state without occupying the bar. Home Assistant webhook IDs come from the local mode-600 `~/.config/ha-pc.env`, never Git.
 - `session-switch` is the Bazzite-style picker: DMS Control Center tiles, Waybar ⇄, and `Super+K`. KDE is a one-shot SDDM Plasma login for Sunshine/Moonlight. Windows 11 is EFI BootNext only; BootOrder stays Linux-first. Lasting SDDM autologin is unchanged.
 - Hyprland binds are HE68-shaped: no Print/F-row/media keys. Screenshots are Super+P / Super+Shift+P. Volume is Super+= / Super+-. Session switch is Super+K. Windows mode required (Fn+W).
+- The `games-fullscreen` windowrule forces real fullscreen and opaque, unblurred
+  rendering for `steam_app_*`, Gamescope, and the emulators. Steam launches most
+  titles borderless, which Hyprland does not count as fullscreen: that single
+  fact blocked `solitary` and direct scanout, kept the DMS bar drawn over the
+  game, and stopped `linux-wallpaperengine`'s existing
+  `--fullscreen-pause-only-active` from ever firing. One rule fixes all four.
+- Measured on 4K/165 before the rule: kawase blur (size 12, passes 4) cost ~3.7
+  points of GPU at an idle desktop, and `linux-wallpaperengine` cost ~3.6% of GPU
+  time plus 802 MiB of VRAM. `active_opacity` is 0.78, so a borderless game was
+  being blurred behind every frame at 3840x2160.
+- `vrr = 2` is correct and verified: the monitor reports `vrr: false` on the idle
+  desktop, so the OLED flicker source is gone. In-game behaviour is unverified.
+  If flicker returns in a game, cap FPS below max refresh before trying `vrr = 0`.
+- `allow_tearing` stays false. With VRR working, tearing buys nothing; direct
+  scanout was blocked by borderless windowing, not by the tearing setting.
+- Nothing is throttling. CPU is `amd-pstate-epp` with the `powersave` governor and
+  `EPP=balance_performance`, which is the normal active mode on this driver, not a
+  throttle. GPU `power_dpm_force_performance_level` is `auto`.
 
 ## Durable decisions
 
@@ -34,3 +52,13 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 ## Next step
 
 - Keep rice work in this repo separate from the Wallpaper Engine backend until other scenes are requested.
+- GameMode is installed by `scripts/install-hyprland-packages.sh` but is not yet
+  wired. Two steps remain, both outside this repo: copy `~/hermes/gamemode.ini`
+  to `~/.config/gamemode.ini`, and add `gamemoderun %command%` to the launch
+  options of each game. GameMode only activates when the game asks for it, so
+  installing the package alone changes nothing. Verify with `gamemoded -s`.
+- Steam is moving from the Flatpak to the native package. `gamemoderun` from the
+  host cannot reach into the Flatpak sandbox, which is the main reason for the
+  move. The library at `/mnt/980pro/SteamLibrary` is outside the Flatpak app dir,
+  so native Steam can adopt it without redownloading. Install and verify native
+  Steam first; uninstall the Flatpak only afterwards.
