@@ -52,6 +52,8 @@
         {"id": "cpuUsage", "enabled": true, "minimumWidth": false},
         {"id": "memUsage", "enabled": true, "minimumWidth": false},
         "notificationButton",
+        {"id": "plugin_lights", "enabled": true},
+        {"id": "plugin_sessionPower", "enabled": true},
         {"id": "battery", "enabled": false},
         {"id": "controlCenterButton", "enabled": true, "showNetworkIcon": false}
       ],

@@ -9,7 +9,7 @@
   "reload_style_on_change": true,
   "modules-left": ["hyprland/workspaces", "group/media"],
   "modules-center": ["clock"],
-  "modules-right": ["custom/swaync", "group/status"],
+  "modules-right": ["custom/lights", "custom/session", "custom/swaync", "group/status"],
   "hyprland/workspaces": {
     "disable-scroll": true,
     "on-click": "activate",
@@ -47,6 +47,16 @@
   "clock": {
     "format": "{:%I:%M %p  |  %a %d}",
     "tooltip-format": "{:%A, %B %d, %Y}"
+  },
+  "custom/lights": {
+    "format": "💡",
+    "tooltip-format": "Home Assistant lighting modes",
+    "on-click": "$HOME/.local/bin/ha-lights menu"
+  },
+  "custom/session": {
+    "format": "⏻",
+    "tooltip-format": "Power and session menu",
+    "on-click": "$HOME/.local/bin/session-switch menu"
   },
   "custom/swaync": {
     "exec": "swaync-client -c",

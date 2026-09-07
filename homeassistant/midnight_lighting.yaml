@@ -1,0 +1,54 @@
+# Midnight-PC lighting-mode dispatcher (Home Assistant package)
+#
+# Copy to ~/hermes/homeassistant/midnight_lighting.yaml and then to
+# HAOS /config/packages/midnight_lighting.yaml.
+# Requires: homeassistant.packages: !include_dir_named packages
+#
+# Add this to HA /config/secrets.yaml and ~/.config/ha-pc.env only:
+#   secrets.yaml: midnight_pc_lights_mode: <random webhook id>
+#   ha-pc.env:    HA_WEBHOOK_LIGHTS_MODE=<same value>
+# Never commit the webhook id.
+#
+# The desktop posts JSON {"mode":"<token>"}. This package maps tokens to the
+# existing UI scripts by friendly name. script.lights_gaming is the only
+# entity_id confirmed on the live machine; other modes are resolved by name.
+
+automation:
+  - id: midnight_pc_lights_mode
+    alias: "Midnight-PC lighting mode webhook"
+    mode: queued
+    trigger:
+      - platform: webhook
+        allowed_methods:
+          - POST
+        local_only: true
+        webhook_id: !secret midnight_pc_lights_mode
+    variables:
+      requested_mode: "{{ trigger.json.mode | default('') | lower }}"
+      wanted:
+        candlelight: "Lights: Candlelight"
+        focus: "Lights: Focus"
+        gaming: "Lights: Gaming"
+        light: "Lights: Light mode"
+        movie: "Lights: Movie"
+        night: "Lights: Night light"
+    condition:
+      - condition: template
+        value_template: "{{ requested_mode in wanted }}"
+    action:
+      - variables:
+          target_script: >-
+            {% if requested_mode == 'gaming' %}
+              script.lights_gaming
+            {% else %}
+              {% set matches = states.script
+                 | selectattr('name', 'equalto', wanted[requested_mode])
+                 | map(attribute='entity_id')
+                 | list %}
+              {{ matches[0] if matches else '' }}
+            {% endif %}
+      - condition: template
+        value_template: "{{ target_script.startswith('script.') }}"
+      - action: script.turn_on
+        target:
+          entity_id: "{{ target_script }}"

@@ -29,6 +29,8 @@ window#waybar {
 #media,
 #custom-windows,
 #clock,
+#custom-lights,
+#custom-session,
 #custom-swaync,
 #status {
     background: rgba(18, 14, 14, 0.48);
@@ -130,6 +132,8 @@ window#waybar {
     letter-spacing: 0.02em;
 }
 
+#custom-lights,
+#custom-session,
 #custom-swaync {
     padding: 0 12px;
     font-weight: 600;

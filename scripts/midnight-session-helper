@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# Root helper for one-shot Plasma autologin and one-shot Windows EFI BootNext.
+# Never changes lasting SDDM autologin or the EFI boot list.
+set -euo pipefail
+
+dropin="/etc/sddm.conf.d/zz-midnight-once.conf"
+clear_unit="midnight-clear-sddm-once.service"
+
+die() { echo "midnight-session-helper: $*" >&2; exit 1; }
+
+[[ "$(id -u)" -eq 0 ]] || die "must run as root via pkexec"
+
+dry_run=0
+action=""
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) dry_run=1 ;;
+    kde|windows|--clear-once|--wait-clear-once) action="$arg" ;;
+    *) die "usage: midnight-session-helper [--dry-run] kde|windows|--clear-once|--wait-clear-once" ;;
+  esac
+done
+[[ -n "$action" ]] || die "usage: midnight-session-helper [--dry-run] kde|windows|--clear-once|--wait-clear-once"
+
+run() {
+  if [[ "$dry_run" -eq 1 ]]; then
+    printf 'dry-run:'
+    printf ' %q' "$@"
+    printf '\n'
+    return 0
+  fi
+  "$@"
+}
+
+windows_boot_id() {
+  local line id
+  command -v efibootmgr >/dev/null || die "efibootmgr is not installed"
+  line="$(efibootmgr | grep -F 'Windows Boot Manager' | head -n1 || true)"
+  [[ -n "$line" ]] || die "Windows Boot Manager was not found"
+  id="${line#Boot}"
+  id="${id%%[[:space:]]*}"
+  id="${id%\*}"
+  [[ "$id" =~ ^[0-9A-Fa-f]{4}$ ]] || die "could not parse Windows boot entry"
+  printf '%s\n' "$id"
+}
+
+clear_once() {
+  run rm -f "$dropin"
+  if [[ "$dry_run" -eq 1 ]]; then
+    printf 'dry-run: systemctl disable --now --quiet %q || true\n' "$clear_unit"
+    printf 'dry-run: rm -f /etc/systemd/system/%q\n' "$clear_unit"
+    printf 'dry-run: systemctl daemon-reload\n'
+    return 0
+  fi
+  systemctl disable --now --quiet "$clear_unit" 2>/dev/null || true
+  rm -f "/etc/systemd/system/$clear_unit"
+  systemctl daemon-reload
+}
+
+wait_clear_once() {
+  [[ "$dry_run" -eq 0 ]] || die "--wait-clear-once cannot be dry-run"
+  local i user_name=""
+  if [[ -f "$dropin" ]]; then
+    user_name="$(awk -F= '/^User=/{print $2; exit}' "$dropin")"
+  fi
+  for i in $(seq 1 90); do
+    if [[ -n "$user_name" ]] && loginctl list-sessions --no-legend 2>/dev/null | grep -qw "$user_name"; then
+      sleep 2
+      rm -f "$dropin"
+      systemctl disable --now --quiet "$clear_unit" 2>/dev/null || true
+      rm -f "/etc/systemd/system/$clear_unit"
+      systemctl daemon-reload
+      return 0
+    fi
+    sleep 1
+  done
+  rm -f "$dropin"
+  systemctl disable --now --quiet "$clear_unit" 2>/dev/null || true
+  rm -f "/etc/systemd/system/$clear_unit"
+  systemctl daemon-reload
+}
+
+switch_kde() {
+  local user_name="${SUDO_USER:-shadow}"
+  if [[ "$dry_run" -eq 1 ]]; then
+    printf 'dry-run: write %s Autologin User=%s Session=plasma\n' "$dropin" "$user_name"
+    printf 'dry-run: enable %s then restart sddm\n' "$clear_unit"
+    return 0
+  fi
+  mkdir -p /etc/sddm.conf.d
+  umask 022
+  cat >"$dropin" <<EOF
+# Written by midnight-session-helper. Removed after the next graphical session.
+[Autologin]
+User=$user_name
+Session=plasma
+EOF
+  cat >"/etc/systemd/system/$clear_unit" <<EOF
+[Unit]
+Description=Remove Midnight-PC one-shot SDDM autologin after a session appears
+After=sddm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/midnight-session-helper --wait-clear-once
+
+[Install]
+WantedBy=sddm.service
+EOF
+  systemctl daemon-reload
+  systemctl enable "$clear_unit"
+  systemctl restart sddm
+}
+
+switch_windows() {
+  local id
+  id="$(windows_boot_id)"
+  run efibootmgr --bootnext "$id"
+  if [[ "$dry_run" -eq 1 ]]; then
+    printf 'dry-run: systemctl reboot\n'
+    return 0
+  fi
+  systemctl reboot
+}
+
+case "$action" in
+  --clear-once) clear_once ;;
+  --wait-clear-once) wait_clear_once ;;
+  kde) switch_kde ;;
+  windows) switch_windows ;;
+esac

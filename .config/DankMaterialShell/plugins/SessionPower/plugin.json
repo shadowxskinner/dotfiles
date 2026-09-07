@@ -1,0 +1,13 @@
+{
+  "id": "sessionPower",
+  "name": "Power menu",
+  "description": "Opens the Midnight-PC themed power and session menu",
+  "version": "1.0.0",
+  "author": "Shadow",
+  "type": "widget",
+  "capabilities": ["dankbar-widget"],
+  "component": "./SessionPowerWidget.qml",
+  "icon": "power_settings_new",
+  "permissions": ["process"],
+  "requires_dms": ">=1.6.0"
+}

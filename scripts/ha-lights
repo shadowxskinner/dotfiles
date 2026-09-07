@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# Allowlisted Home Assistant lighting-mode picker for Midnight-PC.
+# Sends only a mode token. Never accepts or posts entity IDs.
+set -euo pipefail
+
+ha_env="${HA_PC_ENV:-$HOME/.config/ha-pc.env}"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/theme-manager"
+
+# Tokens posted to HA. Entity IDs live only in the HA dispatcher package.
+allowlist=(candlelight focus gaming light movie night)
+
+notify() {
+  command -v notify-send >/dev/null && notify-send "Lights" "$1" || true
+}
+
+die() { echo "ha-lights: $*" >&2; exit 1; }
+
+load_ha_pc_env() {
+  [[ -r "$ha_env" ]] || return 0
+  set -a
+  # shellcheck disable=SC1090
+  source "$ha_env"
+  set +a
+}
+
+allowed() {
+  local mode="$1" item
+  for item in "${allowlist[@]}"; do
+    [[ "$item" == "$mode" ]] && return 0
+  done
+  return 1
+}
+
+label_for() {
+  case "$1" in
+    candlelight) echo "Candlelight" ;;
+    focus) echo "Focus" ;;
+    gaming) echo "Gaming" ;;
+    light) echo "Light mode" ;;
+    movie) echo "Movie" ;;
+    night) echo "Night light" ;;
+    *) echo "$1" ;;
+  esac
+}
+
+mode_for_label() {
+  case "$1" in
+    "Candlelight") echo candlelight ;;
+    "Focus") echo focus ;;
+    "Gaming") echo gaming ;;
+    "Light mode") echo light ;;
+    "Movie") echo movie ;;
+    "Night light") echo night ;;
+    *) echo "" ;;
+  esac
+}
+
+ha_post_mode() {
+  local mode="$1"
+  local id="${HA_WEBHOOK_LIGHTS_MODE:-}"
+  [[ -n "$id" ]] || die "HA_WEBHOOK_LIGHTS_MODE is not set in $ha_env"
+  local ha_lan="${HA_URL:-http://192.168.68.56:8123}"
+  local ha_ts="${HA_TS_URL:-http://100.109.84.121:8123}"
+  local payload
+  payload="$(printf '{"mode":"%s"}' "$mode")"
+  curl -sS -m 3 -X POST "$ha_lan/api/webhook/$id" \
+    -H 'Content-Type: application/json' \
+    --data-binary "$payload" >/dev/null 2>&1 \
+    || curl -sS -m 3 -X POST "$ha_ts/api/webhook/$id" \
+      -H 'Content-Type: application/json' \
+      --data-binary "$payload" >/dev/null 2>&1
+}
+
+on_hyprland() {
+  case "${XDG_CURRENT_DESKTOP:-}" in
+    *Hyprland*|*hyprland*) return 0 ;;
+  esac
+  command -v pgrep >/dev/null && pgrep -x Hyprland >/dev/null 2>&1
+}
+
+wofi_style() {
+  local theme=dragon path fallback
+  if [[ -f "$state_dir/current" ]]; then
+    theme="$(tr -d '[:space:]' <"$state_dir/current" || true)"
+  fi
+  path="$HOME/.config/wofi/themes/${theme}.css"
+  if [[ -f "$path" ]]; then
+    printf '%s\n' "$path"
+    return 0
+  fi
+  fallback="$HOME/.config/wofi/style.css"
+  [[ -f "$fallback" ]] && printf '%s\n' "$fallback"
+}
+
+apply_mode() {
+  local mode="$1" label
+  allowed "$mode" || die "mode '$mode' is not allowlisted"
+  label="$(label_for "$mode")"
+  load_ha_pc_env
+  if ha_post_mode "$mode"; then
+    echo "Lights: $label"
+    notify "$label"
+    return 0
+  fi
+  echo "Lights failed: $label" >&2
+  notify "Failed: $label"
+  return 1
+}
+
+show_menu() {
+  local args style choice mode
+  args=(wofi --dmenu --prompt Lights --lines 6 --width 360 --location top_right --yoffset 12)
+  style="$(wofi_style || true)"
+  [[ -n "$style" ]] && args+=(--style "$style")
+  if on_hyprland; then
+    args+=(-D close_on_focus_loss=false)
+  fi
+  choice="$(printf '%s\n' "Candlelight" "Focus" "Gaming" "Light mode" "Movie" "Night light" | "${args[@]}" 2>/dev/null || true)"
+  [[ -n "$choice" ]] || return 0
+  mode="$(mode_for_label "$choice")"
+  [[ -n "$mode" ]] || die "unrecognised choice '$choice'"
+  apply_mode "$mode"
+}
+
+list_modes() {
+  local mode
+  for mode in "${allowlist[@]}"; do
+    printf '%s\t%s\n' "$mode" "$(label_for "$mode")"
+  done
+}
+
+case "${1:-menu}" in
+  menu) show_menu ;;
+  list) list_modes ;;
+  candlelight|focus|gaming|light|movie|night) apply_mode "$1" ;;
+  *) die "usage: ha-lights [menu|list|candlelight|focus|gaming|light|movie|night]" ;;
+esac

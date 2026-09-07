@@ -29,7 +29,8 @@ exists. Git history remains the recovery path for both.
 Run the package script in a visible terminal so `sudo` can ask for your password. It installs tagged
 packages from Arch's official repositories. The config installer backs up an existing
 `~/.config/hypr` or `~/.config/waybar`, then links this repository. Neither script changes SDDM,
-changes KDE, or publishes anything.
+changes KDE, writes EFI BootNext, reboots, or publishes anything. Installing the pkexec session
+helper is a separate, opt-in step (`INSTALL_SESSION_HELPER=1 ./install.sh`).
 
 ## First login
 
@@ -41,7 +42,7 @@ Mac mode makes Super arrive as Alt and every bind goes dead.
 - Terminal: `Super+Enter`
 - Files: `Super+E`
 - Close window: `Super+Q` or `Super+W`
-- Exit Hyprland: `Super+Shift+Q`
+- Power / session menu: `Super+Shift+Q` or `Super+K`
 - Fullscreen: `Super+F`
 - Theme picker: `Super+T`
 - Next / previous theme: `Super+.` / `Super+,`
@@ -63,6 +64,18 @@ this stack.
 
 The tracked DMS settings keep Gaming Mode in Control Center and hide the redundant red Ethernet
 status glyph from the bar. Ethernet remains available inside Control Center.
+
+DMS 1.6 `powermenu` IPC only exposes open/close/toggle, with no supported custom-action
+extension. Switch to KDE and Reboot to Windows therefore live in `session-switch menu`
+together with Lock, Suspend, Log out, Shut down, and Reboot Linux. The DMS bar power pill,
+the Waybar fallback power button, `Super+K`, and `Super+Shift+Q` all open that confirming menu.
+KDE is a one-shot SDDM Plasma login for Sunshine/Moonlight. Windows 11 is EFI BootNext only.
+
+A DMS bar lightbulb opens the Home Assistant lighting-mode picker. Waybar rollback uses
+`custom/lights` → `ha-lights menu`. The desktop posts only an allowlisted mode token to a
+local webhook; entity IDs stay in Home Assistant. Copy
+`homeassistant/midnight_lighting.yaml` to `~/hermes/homeassistant` and HA packages, and put
+`HA_WEBHOOK_LIGHTS_MODE` in `~/.config/ha-pc.env`.
 
 The existing timed theme manager and Wofi styles live in `wayland-kde-build`. Hyprland Wallpaper
 Engine rendering is enabled there through `linux-wallpaperengine`. Dragon and Reaper are the active,

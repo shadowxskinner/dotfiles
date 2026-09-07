@@ -1,0 +1,13 @@
+{
+  "id": "lights",
+  "name": "Lights",
+  "description": "Home Assistant lighting-mode picker for Midnight-PC",
+  "version": "1.0.0",
+  "author": "Shadow",
+  "type": "widget",
+  "capabilities": ["dankbar-widget"],
+  "component": "./LightsWidget.qml",
+  "icon": "lightbulb",
+  "permissions": ["process"],
+  "requires_dms": ">=1.6.0"
+}
