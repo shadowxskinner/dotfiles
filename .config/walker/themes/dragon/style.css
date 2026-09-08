@@ -1,0 +1,239 @@
+/* dragon — red glass. Pairs with Hystar Mythic Dragon (workshop 2950795424)
+ * and with wofi/themes/dragon.css.
+ *
+ * NO GRADIENT RIM, DELIBERATELY. Not an oversight — a gradient rim and a
+ * translucent panel are mutually exclusive here, and glass won.
+ *
+ * Every gradient-rim technique paints the gradient across the whole element and
+ * relies on an OPAQUE surface layer on top to hide all of it except the edge:
+ *
+ *   border-image           GTK ignores border-radius on it and draws a square
+ *                          frame around a rounded panel. Your wofi dragon.css
+ *                          documents this; it is true of GTK4 as well.
+ *   background-clip pair   `border-box` does not mean "the border ring", it
+ *                          means "the whole element including the border". The
+ *                          gradient sits under the entire panel.
+ *   two layers (.box-wrapper gradient + .box inset on top) — the technique your
+ *                          wofi theme uses. Same story: .box covers the middle.
+ *
+ * All three work when the surface is opaque. This surface is rgba(...,0.64),
+ * so 36% of whatever is underneath comes through and the gradient tints the
+ * entire panel maroon — which is exactly what it did, twice.
+ *
+ * So: solid crimson border, translucent body, and the gradient's warmth kept as
+ * an inset top glow in the box-shadow rather than a layer behind the glass.
+ * If you ever want the true gradient rim back, the price is an opaque panel
+ * (raise the alpha to 1.0) and losing the Hyprland frost behind it.
+ *
+ * VERIFIED STRUCTURE, from /etc/xdg/walker/themes/default/layout.xml:
+ *   GtkWindow.window > GtkBox.box-wrapper (600x570, overflow hidden)
+ *     > GtkBox.box > .search-container/.input, .content-container, .keybinds
+ * The .window rule below matters: the window paints its own background and
+ * shows as a dark rounded rectangle behind the panel if left alone.
+ *
+ * Palette — fork for other themes by changing these:
+ *   rim-hot    rgba(214, 58, 58, ...)   bright crimson
+ *   rim-cool   rgba(88, 14, 18, ...)    deep oxblood
+ *   surface    rgba(12, 12, 14, 0.64)   panel body
+ *   text       #dcdcdc / #ffffff
+ *
+ * The surface is deliberately translucent: the frost comes from the Hyprland
+ * layer rule (walker-chrome in hyprland.lua), not from here.
+ */
+
+@define-color window_bg_color rgba(12, 12, 14, 0.64);
+@define-color accent_bg_color #d63a3a;
+@define-color theme_fg_color #dcdcdc;
+@define-color error_bg_color #8c1c1c;
+@define-color error_fg_color #f2f2f2;
+
+* {
+  all: unset;
+  font-family: "Inter", "Noto Sans", sans-serif;
+  font-size: 14px;
+}
+
+scrollbar {
+  opacity: 0;
+}
+
+/* The GtkWindow itself. The layout puts a `window` class on it and the default
+ * stylesheet never touches it, so it paints GTK's stock background — which
+ * shows as a dark rounded rectangle sitting behind the panel, slightly larger
+ * than it. `* { all: unset }` does not catch this: the window draws its own
+ * background rather than inheriting one.
+ *
+ * Everything visible must come from .box-wrapper, so this is transparent.
+ */
+.window {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The whole panel: one element, one flat translucent background, solid rim.
+ *
+ * The three box-shadows do the work a gradient would have:
+ *   drop      depth against the wallpaper
+ *   sheen     1px white top highlight — reads as the top edge of glass
+ *   glow      inset crimson falling off over 24px from the top, which is the
+ *             warm part of the wofi gradient without anything sitting behind
+ *             the translucent surface to tint it
+ *
+ * See the header for why there is no gradient rim.
+ */
+.box-wrapper {
+  padding: 16px;
+  border: 2px solid rgba(214, 58, 58, 0.75);
+  border-radius: 20px;
+  background: @window_bg_color;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 24px 40px -24px rgba(214, 58, 58, 0.22);
+}
+
+/* Explicitly neutral. The default stylesheet leaves `.box {}` empty; this keeps
+ * it empty so nothing paints a second rectangle behind the panel. */
+.box {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Search field — no box. Bare oversized input over a hairline that picks up the
+ * accent, so the top of the panel matches the rim. */
+.input {
+  margin: 4px 6px 14px 6px;
+  padding: 0 0 13px 0;
+  border: none;
+  border-bottom: 1px solid rgba(214, 58, 58, 0.30);
+  border-radius: 0;
+  background: transparent;
+  color: #ffffff;
+  font-size: 19px;
+  caret-color: #d63a3a;
+}
+
+.input:focus {
+  border-bottom-color: rgba(214, 58, 58, 0.65);
+}
+
+.input placeholder {
+  opacity: 0.5;
+}
+
+.input selection {
+  background: rgba(214, 58, 58, 0.34);
+}
+
+.list,
+.placeholder,
+.elephant-hint,
+.preview-box {
+  color: @theme_fg_color;
+}
+
+.item-box {
+  padding: 9px 10px;
+  margin: 1px 0;
+  border-radius: 12px;
+  background: transparent;
+}
+
+.item-text {
+  color: @theme_fg_color;
+}
+
+.item-subtext {
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+/* Icon size is NOT settable from item.xml's `icon-size` property — that is a
+ * GtkIconSize enum (normal|large) and it is already at `large`, which is 32px.
+ * -gtk-icon-size is the GTK4 CSS property that takes a real pixel value and
+ * overrides the enum, so the size lives here rather than requiring a copy of
+ * item.xml in every theme directory.
+ *
+ * 40px against a ~50px row (9px padding + 14px text + 12px subtext). Push to 48
+ * if you want them bigger; past that the row grows and fewer results fit. */
+.item-image {
+  -gtk-icon-size: 40px;
+  margin-right: 14px;
+  opacity: 0.92;
+}
+
+/* Selected row echoes the rim: same gradient, same direction, low alpha, so the
+ * highlight and the border read as one system instead of two different reds. */
+child:selected .item-box,
+row:selected .item-box {
+  background-image: linear-gradient(
+    90deg,
+    rgba(214, 58, 58, 0.34) 0%,
+    rgba(140, 28, 28, 0.16) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(214, 58, 58, 0.28);
+}
+
+child:selected .item-text,
+row:selected .item-text {
+  color: #ffffff;
+}
+
+child:selected .item-image,
+row:selected .item-image {
+  opacity: 1;
+}
+
+.item-quick-activation {
+  background: rgba(214, 58, 58, 0.25);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.calc .item-text {
+  font-size: 24px;
+}
+
+.symbols .item-image {
+  font-size: 24px;
+}
+
+.preview {
+  border: 1px solid rgba(214, 58, 58, 0.25);
+  border-radius: 10px;
+  color: @theme_fg_color;
+}
+
+.keybinds {
+  padding-top: 10px;
+  border-top: 1px solid rgba(214, 58, 58, 0.22);
+  font-size: 12px;
+  color: @theme_fg_color;
+}
+
+.keybind-bind {
+  text-transform: lowercase;
+  opacity: 0.35;
+}
+
+.keybind-label {
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid rgba(214, 58, 58, 0.45);
+}
+
+.keybind-button {
+  opacity: 0.5;
+}
+
+.keybind-button:hover {
+  opacity: 0.75;
+}
+
+.error {
+  padding: 10px;
+  border-radius: 10px;
+  background: @error_bg_color;
+  color: @error_fg_color;
+}

@@ -1,0 +1,12 @@
+# elephant — calc provider.
+#
+# Backed by libqalculate's `qalc`, not a bespoke parser, so unit conversion
+# ("12 GiB to MB", "165hz to ms") works as well as arithmetic. qalc is a hard
+# dependency; install-walker-packages.sh pulls libqalculate.
+#
+# Nothing needs overriding here. The file exists so `elephant generatedoc calc`
+# has somewhere obvious to land and so the provider is visibly accounted for
+# alongside the other five.
+#
+# Reachable two ways: in the default provider set (bare `12*4`) and behind the
+# `=` prefix (`=12*4`) for when a query would otherwise match an application.

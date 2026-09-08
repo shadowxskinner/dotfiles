@@ -1,0 +1,13 @@
+# elephant — menus provider.
+#
+# The provider itself needs no configuration; the content lives in
+# menus/*.toml, one file per menu. See menus/session.toml.
+#
+# Menus are addressable individually as `menus:<name>`, which is how Super+K
+# opens the session menu directly:
+#   walker --provider menus:session
+#
+# `menus` is in walker's default provider set, so menu entries also surface in
+# an ordinary search — typing "kde" finds "Switch to KDE" without the hotkey.
+#
+# Confirm the full key list with:  elephant generatedoc menus

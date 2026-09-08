@@ -1,0 +1,80 @@
+#!/bin/sh
+# Toggle Walker, styled to match whatever theme-set last selected.
+#
+# Modelled on wofi-toggle, but two of that script's three hard-won workarounds
+# do NOT apply here, and copying them across would have been cargo cult:
+#
+# TOGGLE: DROPPED. wofi has no single-instance guard, so wofi-toggle has to
+# `pkill -x wofi` to close it. Walker registers on the session bus under the
+# GApplication id dev.benz.walker, so a second invocation is forwarded to the
+# running instance instead of starting a new process, and `close_when_open` in
+# config.toml makes that instance close itself. Pressing the bind twice is the
+# toggle. Adding pkill on top would race the compositor's own close animation
+# and, worse, kill the --gapplication-service that exists to make the first
+# launch fast.
+#
+# close_on_focus_loss: DROPPED. That is a wofi option and Walker has no
+# equivalent-by-that-name; the same behaviour is `click_to_close`, which is set
+# in config.toml where it belongs rather than passed per-launch.
+#
+# EXIT 0 AS A CHILD: KEPT, and still load-bearing. Plasma runs each shortcut in
+# its own transient unit (app-net.local.sh@<hex>.service); if the launcher were
+# the unit's MAIN process and exited non-zero, systemd marks the unit FAILED and
+# the ~/hermes watchdog turns that into a Telegram alert storm. Hyprland's
+# exec_cmd does not use transient units, so this costs nothing there -- but this
+# script is reachable from the KDE fallback session too, and a dismissed Walker
+# exits non-zero the same way a dismissed wofi does.
+#
+# THEME: read-only consumer of theme-set's state, exactly like wofi-toggle and
+# hypr-theme-apply. Never writes it. Walker re-reads the theme's CSS on every
+# activation, so --theme takes effect on an already-running service without a
+# restart.
+#
+# FALLBACK: if Walker or elephant is missing, hand off to wofi-toggle rather
+# than failing. Walker without elephant exits 1 with "Please install elephant."
+# and you get no launcher at all, which is the one outcome a launcher bind must
+# never produce.
+
+WOFI_TOGGLE="$HOME/.local/bin/wofi-toggle"
+
+# elephant is checked as well as walker: walker starts, finds no elephant, and
+# exits 1 without ever drawing a window.
+if ! command -v walker >/dev/null 2>&1 || ! command -v elephant >/dev/null 2>&1; then
+    [ -x "$WOFI_TOGGLE" ] && "$WOFI_TOGGLE"
+    exit 0
+fi
+WALKER="$(command -v walker)"
+
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/theme-manager"
+theme=""
+[ -f "$STATE_DIR/current" ] && theme="$(tr -d '[:space:]' < "$STATE_DIR/current" 2>/dev/null || true)"
+[ -n "$theme" ] || theme=reaper
+
+# Fall back to the packaged base theme if the state names something we have no
+# stylesheet for (typo, hand-edit, half-finished rename). Walker itself would
+# print "theme not found. using default theme." and drop to its own upstream
+# default, which is the Kanagawa palette and looks nothing like this desktop --
+# so resolve it here instead and land on `yours`.
+THEME_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/walker/themes"
+[ -f "$THEME_DIR/$theme/style.css" ] || theme=yours
+
+# Start the service on first use so subsequent launches are instant. Walker
+# prints "make sure 'walker --gapplication-service' is running!" when it is not,
+# and every launch pays full GTK4 startup. setsid detaches it so it outlives
+# this script and cannot be killed by a `timeout` wrapped around a caller.
+if ! pgrep -x walker >/dev/null 2>&1; then
+    setsid -f "$WALKER" --gapplication-service >/dev/null 2>&1 || true
+    # Give the service time to claim the bus name; otherwise the launch below
+    # races it and starts a second, non-service instance.
+    i=0
+    while [ "$i" -lt 20 ]; do
+        pgrep -x walker >/dev/null 2>&1 && break
+        sleep 0.05
+        i=$((i + 1))
+    done
+fi
+
+# Not `exec`: see the exit-0 note above.
+"$WALKER" --theme "$theme" "$@"
+
+exit 0

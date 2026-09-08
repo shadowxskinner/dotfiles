@@ -1,0 +1,11 @@
+# elephant — runner provider.
+#
+# Scans $PATH for executables and runs the one you pick. This is why it is kept
+# OUT of walker's `default` provider set and reachable only behind `>`: on a
+# machine with this many toolchains installed, a $PATH dump drowns the desktop
+# entries you actually wanted. See the note in walker/config.toml.
+#
+# shift+Return runs the selection in a terminal instead (walker's `runterminal`
+# action), which picks up $TERMINAL / the configured terminal — kitty here.
+#
+# Confirm the full key list with:  elephant generatedoc runner

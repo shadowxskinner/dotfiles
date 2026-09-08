@@ -6,7 +6,12 @@
 
 local terminal    = "kitty"
 local fileManager = "dolphin"
-local menu        = "~/.local/bin/wofi-toggle"
+-- Walker is the launcher; wofi stays installed and configured as the fallback.
+-- walker-toggle hands off to wofi-toggle by itself when walker or elephant is
+-- missing, so this single bind covers both cases and there is no second key to
+-- remember when something is broken.
+local menu        = "~/.local/bin/walker-toggle"
+local menuFallback = "~/.local/bin/wofi-toggle"
 local mainMod     = "SUPER"
 
 --------------------------------------------------------------------------------
@@ -140,6 +145,33 @@ hl.layer_rule({
     dim_around   = true,
 })
 
+-- Walker gets the same treatment as wofi so the two look identical when the
+-- fallback fires mid-session. Its GTK4 theme paints the panel at 0.62 alpha and
+-- leaves the frosting to this rule, same division of labour as wofi's.
+--
+-- NAMESPACE MATCHES TWO CANDIDATES ON PURPOSE. A bare "walker" was tried first
+-- and blurred nothing: Walker's source never calls gtk_layer_set_namespace, so
+-- the surface comes up under gtk4-layer-shell's default namespace rather than
+-- the app name. This alternation covers both that default and the app-named
+-- case, so it keeps working if upstream starts setting it.
+--
+-- Nothing else here is a gtk4-layer-shell client -- DMS is Quickshell/Qt, Waybar
+-- is GTK3 -- so the broad arm costs nothing today. If you ever add one and it
+-- picks up unwanted blur, narrow this to whichever arm is real. To read the
+-- truth off the running compositor without a timing race:
+--     walker >/dev/null 2>&1 & sleep 1; hyprctl layers | grep -i -B2 -E 'walker|gtk4'; walker -q
+--
+-- Getting this wrong is SILENT: no error, just an unblurred panel, exactly the
+-- way the waybar rule matched nothing until the dms:bar fix below.
+hl.layer_rule({
+    name         = "walker-chrome",
+    match        = { namespace = "(walker|gtk4-layer-shell)" },
+    blur         = true,
+    ignore_alpha = 0.05,
+    animation    = "popin",
+    dim_around   = true,
+})
+
 -- The bar's namespace is dms:bar, not waybar. The old waybar rule carried over
 -- from the .conf and matched nothing, so the bar never got its blur.
 -- xray = true is what DMS's own generated layout.lua asks for: blur samples the
@@ -188,6 +220,10 @@ hl.window_rule({
 hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
 hl.bind("ALT + SPACE", hl.dsp.exec_cmd(menu))
+-- Force wofi even when Walker is healthy: for A/B-ing the two launchers, and as
+-- the escape hatch if Walker starts but draws wrong (a broken theme still
+-- counts as "installed", so walker-toggle's own fallback will not fire).
+hl.bind(mainMod .. " + SHIFT + SPACE", hl.dsp.exec_cmd(menuFallback))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + W", hl.dsp.window.close())
@@ -201,7 +237,24 @@ hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("~/.local/bin/theme-cycle next")
 hl.bind(mainMod .. " + comma", hl.dsp.exec_cmd("~/.local/bin/theme-cycle prev"))
 hl.bind(mainMod .. " + apostrophe", hl.dsp.exec_cmd("~/.local/bin/theme-mode auto"))
 hl.bind(mainMod .. " + G", hl.dsp.exec_cmd("~/.local/bin/gaming-mode toggle"))
-hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("~/.local/bin/session-switch menu"))
+
+-- Session picker. Walker renders the menu defined in
+-- ~/.config/elephant/menus/session.toml, whose entries call `session-switch kde`
+-- and `session-switch windows` directly -- the efibootmgr lookup, the pkexec
+-- helper and the one-shot BootNext behaviour are all unchanged.
+-- `session-switch menu` (the wofi picker) is still there and still used by the
+-- DMS Control Center tile and the Waybar button; it is the fallback, not dead
+-- code. Super+SHIFT+K reaches it directly if Walker is misbehaving.
+--
+-- Routed through walker-toggle rather than calling `walker` directly, so the
+-- session menu gets the same theme as everything else. The one asymmetry worth
+-- knowing: if Walker is missing entirely, walker-toggle falls back to wofi's
+-- *drun* launcher, not to this menu. Super+SHIFT+K is the deliberate fallback
+-- for that case; walker-toggle is not taught about per-invocation fallbacks
+-- because a launcher wrapper that branches on argv is a worse thing to debug at
+-- 2am than a second keybind.
+hl.bind(mainMod .. " + K", hl.dsp.exec_cmd(menu .. " --provider menus:session"))
+hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd("~/.local/bin/session-switch menu"))
 
 -- Screenshots
 -- P = picture. The HE68 has no Print key; keep Print anyway in case Fn is remapped.

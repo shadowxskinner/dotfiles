@@ -1,0 +1,77 @@
+# Walker — Midnight-PC.
+#
+# Deployed by install.sh as ~/.config/walker -> this directory.
+#
+# THEME: "yours" is only the fallback written here. walker-toggle passes
+# `--theme dragon|reaper` on every launch based on theme-manager state, and
+# Walker re-reads the theme's CSS on each activation, so the live theme follows
+# theme-set without this file ever being rewritten. Same read-only contract
+# wofi-toggle has.
+#
+# PROVIDERS: the six asked for are desktopapplications, clipboard, calc,
+# windows, menus and runner. providerlist is added on top because Walker needs
+# it for the `;` provider switcher.
+#
+# `runner` is deliberately NOT in `default`. It scans $PATH, so leaving it in
+# the default set buries real applications under every binary on the system.
+# Upstream's shipped config comments it out for the same reason. It is fully
+# enabled, just behind `>`.
+
+theme = "yours"                # fallback only; walker-toggle passes --theme
+close_when_open = true         # invoking Walker while open closes it -> this IS the toggle
+click_to_close = true
+
+# SECOND PATH TO FROST. Walker asks the compositor to blur behind its surface
+# via ext-background-effect-v1, instead of relying on a Hyprland layer rule
+# matching the right namespace. Worth having because the namespace approach has
+# already failed twice here: the rule is silent when it does not match, so an
+# unblurred panel is the only symptom.
+#
+# Harmless if Hyprland does not implement the protocol — the request is simply
+# ignored, and the walker-chrome layer rule in hyprland.lua still applies if its
+# namespace match is right. Belt and braces; whichever lands first wins.
+ext_background_effect_blur = true
+selection_wrap = false
+exact_search_prefix = "'"
+page_jump_items = 10
+
+[shell]
+layer = "overlay"              # same layer wofi uses; sits above the DMS bar
+exclusive_zone = -1
+
+[placeholders]
+"default" = { input = "Search", list = "No Results" }
+"menus:session" = { input = "Session", list = "No sessions" }
+"clipboard" = { input = "Clipboard history", list = "Clipboard is empty" }
+"windows" = { input = "Focus window", list = "No open windows" }
+"runner" = { input = "Run command", list = "No matches in $PATH" }
+
+[providers]
+default = ["desktopapplications", "calc", "menus"]
+empty = ["desktopapplications"]
+max_results = 50
+
+# Prefixes mirror upstream's defaults so muscle memory transfers from any other
+# Walker install. Only the ones for the six enabled providers are listed.
+[[providers.prefixes]]
+prefix = ";"
+provider = "providerlist"
+
+[[providers.prefixes]]
+prefix = ">"
+provider = "runner"
+
+[[providers.prefixes]]
+prefix = "="
+provider = "calc"
+
+[[providers.prefixes]]
+prefix = ":"
+provider = "clipboard"
+
+[[providers.prefixes]]
+prefix = "$"
+provider = "windows"
+
+[providers.clipboard]
+time_format = "relative"

@@ -1,0 +1,21 @@
+# elephant — windows provider.
+#
+# Every key below was read off the koanf tags in
+# internal/providers/windows/setup.go, so these are real, not guessed.
+#
+# HOW IT FINDS WINDOWS: the provider talks wlr-foreign-toplevel-management-v1,
+# not hyprctl. Hyprland implements that protocol, so listing and focusing work.
+# Verify on this machine with:  wayland-info | grep foreign_toplevel
+#
+# show_workspaces IS A NO-OP HERE. The provider only installs a workspace
+# handler when XDG_CURRENT_DESKTOP == "niri" (setup.go gates it on exactly that
+# string). On Hyprland you get windows and no workspace entries, whatever this
+# is set to. It is written as false to say that out loud rather than leave a
+# true that looks like it is doing something.
+
+# ms to wait before focusing. Upstream default is 100. Raise it if a focused
+# window ends up behind Walker's own closing animation.
+delay = 100
+
+show_workspaces = false
+show_empty_workspaces = false

@@ -34,6 +34,7 @@ deploy_file() {
 mkdir -p "$HOME/.config" "$HOME/.local/bin"
 install -Dm755 "$repo_dir/scripts/gaming-mode" "$HOME/.local/bin/gaming-mode"
 install -Dm755 "$repo_dir/scripts/session-switch" "$HOME/.local/bin/session-switch"
+install -Dm755 "$repo_dir/scripts/walker-toggle" "$HOME/.local/bin/walker-toggle"
 install -Dm644 "$repo_dir/.config/systemd/user/gaming-mode-watch.service" \
   "$HOME/.config/systemd/user/gaming-mode-watch.service"
 install -Dm644 "$repo_dir/.config/DankMaterialShell/plugins/GamingMode/plugin.json" \
@@ -75,6 +76,12 @@ sudo install -o root -g root -m644 "$repo_dir/polkit/org.midnight.session-switch
 mkdir -p "$HOME/.config"
 deploy hypr
 deploy waybar
+# Walker/elephant. Run scripts/install-walker-packages.sh first; deploying the
+# configs without the binaries is harmless but pointless. wofi's config is NOT
+# deployed from here -- it lives untracked in ~/.config/wofi and stays that way,
+# so the fallback launcher cannot be broken by a bad deploy of the new one.
+deploy walker
+deploy elephant
 deploy_file gtk-3.0/settings.ini
 deploy_file gtk-4.0/settings.ini
 deploy_file xdg-desktop-portal/hyprland-portals.conf

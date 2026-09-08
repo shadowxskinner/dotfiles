@@ -1,0 +1,59 @@
+# elephant — desktopapplications provider.
+#
+# Parses .desktop entries and keeps a launch history. Keys below were read off
+# the koanf tags in internal/providers/desktopapplications/setup.go, so they are
+# real, not inferred.
+#
+# SORTING, which is the thing that was wrong out of the box:
+#
+#   history = true            (upstream default) history influences the ranking
+#                             of SEARCH results, so apps you launch often win
+#                             ties against ones you never touch.
+#   history_when_empty        upstream default is FALSE, which is why opening
+#                             Walker with an empty box showed a flat A-Z list
+#                             starting at "Advanced Network Configuration" and
+#                             "Avahi SSH Server Browser" — things you have never
+#                             opened. Setting it true puts your most-used apps
+#                             at the top on open instead.
+#
+# HOW THE RANKING ACTUALLY WORKS, from pkg/common/history/history.go:
+#
+#   score = (10 - days_since_last_use) * times_launched
+#
+# with times_launched capped at 10. So it is recency AND frequency, not either
+# on its own: something opened often and opened today wins, and anything not
+# touched for 10+ days decays to a floor of 1. Worth knowing before tuning —
+# the list will keep reshuffling for the first couple of weeks and that is the
+# decay working, not a bug.
+#
+# History is cached, not configured. It lives in
+# ~/.cache/elephant/desktopapplications_history.gob and pins live alongside it
+# in desktopapplications_pinned.gob. Delete either to start over; neither
+# belongs in this repo.
+#
+# WHAT YOU CANNOT GET: alphabetical search results. Once you type, Walker ranks
+# by fuzzy match score, and there is no setting to override that ordering. This
+# is the right behaviour anyway — you want the best match first, not the match
+# that happens to start with the earliest letter. The A-Z list you were seeing
+# was not a sort setting, it was just the unranked fallback when there is no
+# query and no history to order by.
+#
+# This also removes the need to pin Claude/ChatGPT/Discord/Steam: launch them a
+# few times and they float to the top on their own.
+
+history = true
+history_when_empty = true
+
+# Placeholder for apps whose .desktop has no Icon= line, so the list does not
+# get ragged gaps.
+icon_placeholder = "applications-other"
+
+# LAUNCH WRAPPER: the provider auto-detects `uwsm` or `app2unit` and launches
+# apps through it when present, giving each its own systemd scope. Neither is
+# installed here and install-walker-packages.sh does not pull them in — apps
+# launch as direct children of elephant, the same shape wofi already used.
+# Worth revisiting only if you want per-app resource control, and it would
+# interact with gaming-mode-watch, so do not add uwsm casually.
+#
+# Confirm the full key list for the installed version with:
+#   elephant generatedoc desktopapplications

@@ -1,0 +1,17 @@
+# elephant — main configuration.
+#
+# Intentionally empty of settings. Everything Midnight-PC needs is either a
+# provider-level setting (see the sibling *.toml files) or a Walker-side one
+# (see ~/.config/walker/config.toml). Writing speculative top-level keys here
+# would be worse than writing none: elephant's loader ignores keys it does not
+# recognise, so a typo or a renamed option fails silently and looks like it took
+# effect.
+#
+# Get the authoritative list for this installed version with:
+#   elephant generatedoc
+# scripts/install-walker-packages.sh runs that and drops the output in
+# docs/elephant/ so the schema in the repo always matches the binary on disk.
+#
+# One cross-file constraint worth knowing: walker's `global_argument_delimiter`
+# must match elephant's. Both are "#" by default and neither is overridden, so
+# they agree. If you change one, change the other.

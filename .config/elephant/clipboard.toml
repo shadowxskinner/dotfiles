@@ -1,0 +1,30 @@
+# elephant — clipboard provider.
+#
+# HARD DEPENDENCIES, both silent if missing. clipboard's Available() checks for
+# `wl-paste` (wl-clipboard) and `identify` (imagemagick) and, if either is
+# absent, logs at info level and DISABLES ITSELF. There is no error and no entry
+# in the provider list — the `:` prefix just returns nothing. Both are installed
+# by scripts/install-walker-packages.sh; if clipboard ever goes quiet, check
+# those two binaries first.
+#
+# The keys below are the ones exposed by the provider's LoadConfig defaults.
+# Key spelling follows elephant's snake_case koanf convention, but unlike
+# windows.toml these tag names were not read directly from source: an
+# unrecognised key is ignored silently rather than erroring, so confirm with
+#   elephant generatedoc clipboard
+# which install-walker-packages.sh writes to docs/elephant/ for you.
+
+max_items = 100
+
+# Ignore single symbols/emoji copied out of the symbols provider, so picking an
+# emoji does not push a one-character entry into history.
+ignore_symbols = true
+
+# 0 disables time-based expiry; history is trimmed by max_items only.
+auto_cleanup = 0
+
+pinned_on_top = true
+
+# OCR on copied images needs tesseract. Left off: it is a per-image cost on a
+# machine that is deliberately careful about background GPU/CPU load.
+ocr = false

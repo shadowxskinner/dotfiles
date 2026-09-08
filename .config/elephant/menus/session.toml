@@ -1,0 +1,39 @@
+# Session menu — the Walker front-end for ~/.local/bin/session-switch.
+#
+# WHAT THIS DOES AND DOES NOT REPLACE. session-switch has four subcommands;
+# this menu replaces exactly one of them, `menu`, which is the wofi --dmenu
+# picker. The `kde` and `windows` subcommands are called directly below, so all
+# of the logic that matters is untouched: the efibootmgr lookup for the Windows
+# Boot Manager entry, the pkexec call into midnight-session-helper, the
+# already-outside-Hyprland guard, and the one-shot BootNext semantics.
+#
+# `session-switch menu` still exists and still uses wofi. That is deliberate —
+# it is the fallback path when Walker or elephant is not running, and it is what
+# the DMS Control Center tile and the Waybar button call.
+#
+# THE CONFIRMATION PROMPT IS STILL NOT WALKER. session-switch's confirm() tries
+# zenity first and falls back to wofi --dmenu. Picking an entry here therefore
+# opens a zenity (or wofi) dialog, not a second Walker. That is a deliberate
+# non-change: rewriting confirm() to shell out to Walker would put the launcher
+# in the path of a reboot confirmation, and a launcher that fails to start
+# should not be able to swallow a "Cancel".
+#
+# $HOME rather than ~: actions are run through `sh -c`, where both expand, but
+# $HOME survives being copied into a systemd unit or a non-interactive context
+# and a bare ~ does not always.
+
+name = "session"
+name_pretty = "Session"
+icon = "system-switch-user"
+
+[[entries]]
+text = "Switch to KDE"
+keywords = ["kde", "plasma", "sunshine", "moonlight", "stream", "session"]
+icon = "start-here-kde"
+actions = { "kde" = "$HOME/.local/bin/session-switch kde" }
+
+[[entries]]
+text = "Reboot to Windows 11"
+keywords = ["windows", "win11", "reboot", "boot", "dual", "session"]
+icon = "computer"
+actions = { "windows" = "$HOME/.local/bin/session-switch windows" }

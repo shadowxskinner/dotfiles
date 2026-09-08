@@ -12,6 +12,52 @@ python3 -m py_compile .config/waybar/player-button.py .config/waybar/window-coun
 bash -n scripts/gaming-mode
 bash -n scripts/session-switch
 bash -n scripts/midnight-session-helper
+bash -n scripts/install-walker-packages.sh
+sh -n scripts/walker-toggle
+
+# Walker/elephant config must parse. tomllib is stdlib from 3.11; Arch is well
+# past that. Fail loudly rather than skipping if it is somehow missing.
+python3 - <<'EOF'
+import glob
+import tomllib
+for f in sorted(
+    glob.glob(".config/walker/*.toml")
+    + glob.glob(".config/elephant/*.toml")
+    + glob.glob(".config/elephant/menus/*.toml")
+):
+    with open(f, "rb") as fh:
+        tomllib.load(fh)
+EOF
+
+# The session menu must call session-switch's real subcommands, not re-implement
+# efibootmgr or pkexec. If an entry ever stops shelling out to session-switch,
+# the one-shot BootNext guarantees have been forked.
+grep -q 'session-switch kde' .config/elephant/menus/session.toml
+grep -q 'session-switch windows' .config/elephant/menus/session.toml
+# Comments are stripped first: the file's header explains the BootNext/pkexec
+# behaviour it is deliberately NOT reimplementing, and grepping the raw file
+# matches that prose and fails on a correct config.
+if sed 's/#.*//' .config/elephant/menus/session.toml |
+    grep -qE 'efibootmgr|pkexec|BootNext'; then
+  echo "Session menu must delegate to session-switch, not reimplement it" >&2
+  exit 1
+fi
+
+# Wofi stays the fallback launcher. All three of these are the fallback path:
+# the Walker bind, the explicit wofi bind, and walker-toggle's own handoff.
+grep -q 'walker-toggle' .config/hypr/hyprland.lua
+grep -q 'wofi-toggle' .config/hypr/hyprland.lua
+grep -q 'wofi-toggle' scripts/walker-toggle
+grep -q 'session-switch menu' .config/hypr/hyprland.lua
+# walker-toggle only ever reads theme-manager state, same contract as
+# wofi-toggle and hypr-theme-apply.
+if grep -qE '>[[:space:]]*"?\$STATE_DIR|write_state|mv .*STATE_DIR' scripts/walker-toggle; then
+  echo "walker-toggle must not write theme-manager state" >&2
+  exit 1
+fi
+# The blur rule is namespace-matched and silently does nothing if the namespace
+# is wrong; at minimum make sure the rule did not get dropped.
+grep -q 'walker-chrome' .config/hypr/hyprland.lua
 python -m json.tool .config/DankMaterialShell/plugins/GamingMode/plugin.json >/dev/null
 python -m json.tool .config/DankMaterialShell/plugins/SessionKde/plugin.json >/dev/null
 python -m json.tool .config/DankMaterialShell/plugins/SessionWindows/plugin.json >/dev/null
@@ -127,7 +173,14 @@ for required in .config/hypr/hyprland.conf .config/waybar/config .config/waybar/
                 .config/DankMaterialShell/plugins/SessionWindows/plugin.json \
                 .config/DankMaterialShell/plugins/SessionWindows/SessionWindowsWidget.qml \
                 polkit/org.midnight.session-switch.policy \
+                .config/walker/config.toml \
+                .config/walker/themes/yours/style.css \
+                .config/walker/themes/dragon/style.css \
+                .config/walker/themes/reaper/style.css \
+                .config/elephant/elephant.toml \
+                .config/elephant/menus/session.toml \
                 scripts/gaming-mode scripts/session-switch scripts/midnight-session-helper \
+                scripts/walker-toggle scripts/install-walker-packages.sh \
                 AGENTS.md .ai/context.md; do
   [[ -f "$required" ]] || { echo "Missing $required" >&2; exit 1; }
 done
