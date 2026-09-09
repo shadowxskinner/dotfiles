@@ -333,6 +333,14 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("systemctl --user start hyprpolkitagent")
     hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE GTK_THEME QT_QPA_PLATFORMTHEME")
     hl.exec_cmd("systemctl --user restart gaming-mode-watch.service")
+    -- Same reason as the line above, and it must stay after
+    -- dbus-update-activation-environment. elephant.service carries
+    -- ConditionEnvironment=WAYLAND_DISPLAY, so on a cold boot systemd may skip
+    -- it -- graphical-session.target is reached before Hyprland has exported
+    -- anything. This restart re-evaluates that condition once the environment
+    -- is populated. Without it, Walker comes up after a reboot showing only
+    -- "Waiting for elephant..." while the unit sits inactive.
+    hl.exec_cmd("systemctl --user restart elephant.service")
     hl.exec_cmd("gsettings set org.gnome.desktop.interface color-scheme prefer-dark")
     hl.exec_cmd("gsettings set org.gnome.desktop.interface clock-format 12h")
     hl.exec_cmd("~/.local/bin/hypr-theme-apply")
