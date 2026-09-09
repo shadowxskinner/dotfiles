@@ -185,6 +185,28 @@ hl.layer_rule({
     xray         = true,
 })
 
+-- gamebar's controller overlay (~/Projects/gamebar). Same division of labour as
+-- wofi and Walker: the surface paints itself semi-transparent and this rule does
+-- the frosting, so no QML blur shader runs while a game is on screen.
+--
+-- Unlike walker-chrome, this namespace is NOT a guess. gamebar sets it
+-- explicitly with WlrLayershell.namespace and its scripts/check.sh fails if it
+-- is ever renamed.
+--
+-- Costs nothing while hidden: the surface is unmapped, so direct scanout and
+-- solitary resume and the games-fullscreen rule keeps doing its job.
+--
+-- dim_around is a judgement call. It looks right over the desktop and may be
+-- too heavy over a game; drop it first if the overlay feels oppressive.
+hl.layer_rule({
+    name         = "gamebar-chrome",
+    match        = { namespace = "^gamebar$" },
+    blur         = true,
+    ignore_alpha = 0.05,
+    animation    = "popin",
+    dim_around   = true,
+})
+
 --------------------------------------------------------------------------------
 -- Window rules
 --
