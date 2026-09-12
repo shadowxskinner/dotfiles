@@ -58,6 +58,37 @@ fi
 # The blur rule is namespace-matched and silently does nothing if the namespace
 # is wrong; at minimum make sure the rule did not get dropped.
 grep -q 'walker-chrome' .config/hypr/hyprland.lua
+
+# elephant must not regress to the generated unit. Both guards matter: the
+# condition is what stops it starting blind on a cold boot, and the restart in
+# hyprland.lua is what starts it once the environment exists. Either one alone
+# leaves Walker showing "Waiting for elephant..." after a reboot.
+grep -q 'ConditionEnvironment=WAYLAND_DISPLAY' .config/systemd/user/elephant.service
+grep -q 'Restart=always' .config/systemd/user/elephant.service
+grep -q 'systemctl --user restart elephant.service' .config/hypr/hyprland.lua
+# The restart is useless before the environment is exported. Fail if the order
+# is ever swapped.
+#
+# Both patterns must match exactly one line. Anchoring on hl.exec_cmd( is what
+# does that: the surrounding comments mention both commands by name, and a
+# looser grep returns two line numbers, which then fails the integer test with
+# "334\n337: integer expression expected" rather than reporting a real problem.
+hypr_line() { grep -n "hl\.exec_cmd(\"$1" .config/hypr/hyprland.lua | head -1 | cut -d: -f1; }
+dbus_at="$(hypr_line 'dbus-update-activation-environment')"
+elephant_at="$(hypr_line 'systemctl --user restart elephant.service')"
+if [[ -z "$dbus_at" || -z "$elephant_at" ]]; then
+  echo "could not locate the autostart lines in hyprland.lua" >&2
+  exit 1
+fi
+if (( dbus_at > elephant_at )); then
+  echo "elephant restart must come AFTER dbus-update-activation-environment" >&2
+  exit 1
+fi
+# install-walker-packages.sh must not regenerate the weaker unit.
+if grep -qE '^\s*elephant service enable' scripts/install-walker-packages.sh; then
+  echo "install-walker-packages.sh must not run 'elephant service enable'" >&2
+  exit 1
+fi
 python -m json.tool .config/DankMaterialShell/plugins/GamingMode/plugin.json >/dev/null
 python -m json.tool .config/DankMaterialShell/plugins/SessionKde/plugin.json >/dev/null
 python -m json.tool .config/DankMaterialShell/plugins/SessionWindows/plugin.json >/dev/null
@@ -166,6 +197,7 @@ for required in .config/hypr/hyprland.conf .config/waybar/config .config/waybar/
                 .config/gtk-4.0/settings.ini \
                 .config/xdg-desktop-portal/hyprland-portals.conf \
                 .config/systemd/user/gaming-mode-watch.service \
+                .config/systemd/user/elephant.service \
                 .config/DankMaterialShell/plugins/GamingMode/plugin.json \
                 .config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml \
                 .config/DankMaterialShell/plugins/SessionKde/plugin.json \

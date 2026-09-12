@@ -58,6 +58,27 @@ theme=""
 THEME_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/walker/themes"
 [ -f "$THEME_DIR/$theme/style.css" ] || theme=yours
 
+# ELEPHANT FIRST. Walker shows a "Waiting for elephant..." label when it starts
+# without a backend, and that label does NOT get hidden again once elephant
+# turns up -- it sits in the middle of the panel, next to a perfectly working
+# result list, until Walker is restarted. Starting the Walker service before
+# elephant is ready is therefore a cosmetic bug that outlives the condition
+# that caused it.
+#
+# systemd is asked rather than probing for a socket path, because the unit
+# already carries ConditionEnvironment=WAYLAND_DISPLAY and knows better than
+# this script whether starting is even appropriate. `start` on an active unit
+# is a no-op, so this is safe to run on every launch.
+if ! systemctl --user is-active --quiet elephant.service 2>/dev/null; then
+    systemctl --user start elephant.service >/dev/null 2>&1 || true
+    i=0
+    while [ "$i" -lt 20 ]; do
+        systemctl --user is-active --quiet elephant.service 2>/dev/null && break
+        sleep 0.05
+        i=$((i + 1))
+    done
+fi
+
 # Start the service on first use so subsequent launches are instant. Walker
 # prints "make sure 'walker --gapplication-service' is running!" when it is not,
 # and every launch pays full GTK4 startup. setsid detaches it so it outlives

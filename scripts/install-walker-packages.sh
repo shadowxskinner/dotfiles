@@ -111,13 +111,14 @@ done
 # --user unit inherits them. A system unit would start with none of it and the
 # clipboard and windows providers would come up dead.
 echo
-echo "Enabling the elephant user service."
-elephant service enable
-systemctl --user daemon-reload
-systemctl --user enable --now elephant.service
-systemctl --user --no-pager status elephant.service --lines=0 || true
+echo "NOT running 'elephant service enable' — deliberately."
+echo "It generates a unit with no ConditionEnvironment and Restart=on-failure,"
+echo "which comes up dead after a cold boot (Walker shows 'Waiting for"
+echo "elephant...'). The repo owns .config/systemd/user/elephant.service, and"
+echo "./install.sh installs and enables it. See the comments in that unit."
 
 echo
-echo "Installed. Next: ./install.sh to deploy the walker and elephant configs."
+echo "Installed. Next: ./install.sh to deploy the walker/elephant configs and"
+echo "the elephant service unit."
 echo "Then verify the layer namespace, which the blur rule depends on:"
 echo "  hyprctl layers | grep -i -B2 walker"

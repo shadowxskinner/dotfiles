@@ -37,6 +37,10 @@ install -Dm755 "$repo_dir/scripts/session-switch" "$HOME/.local/bin/session-swit
 install -Dm755 "$repo_dir/scripts/walker-toggle" "$HOME/.local/bin/walker-toggle"
 install -Dm644 "$repo_dir/.config/systemd/user/gaming-mode-watch.service" \
   "$HOME/.config/systemd/user/gaming-mode-watch.service"
+# Overwrites whatever `elephant service enable` generated. The repo copy adds
+# ConditionEnvironment + Restart=always; see the comments in the unit.
+install -Dm644 "$repo_dir/.config/systemd/user/elephant.service" \
+  "$HOME/.config/systemd/user/elephant.service"
 install -Dm644 "$repo_dir/.config/DankMaterialShell/plugins/GamingMode/plugin.json" \
   "$HOME/.config/DankMaterialShell/plugins/GamingMode/plugin.json"
 install -Dm644 "$repo_dir/.config/DankMaterialShell/plugins/GamingMode/GamingModeWidget.qml" \
@@ -60,6 +64,11 @@ if ! cmp -s "$repo_dir/.config/DankMaterialShell/settings.json" \
 fi
 systemctl --user daemon-reload
 systemctl --user enable --now gaming-mode-watch.service
+# `enable` only; NOT --now. elephant carries ConditionEnvironment=WAYLAND_DISPLAY
+# and starting it from a context that lacks it would be skipped anyway.
+# hyprland.lua restarts it at session start once the environment is populated.
+systemctl --user enable elephant.service
+systemctl --user try-restart elephant.service
 if command -v dms >/dev/null; then
   dms ipc plugin-scan scan >/dev/null || true
   dms ipc call plugins enable gamingMode >/dev/null || true
