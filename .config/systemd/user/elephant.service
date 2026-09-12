@@ -1,0 +1,49 @@
+[Unit]
+# Elephant — the data-provider backend Walker talks to. Walker is only a GTK4
+# front-end; with elephant down it draws an empty panel that says
+# "Waiting for elephant..." and nothing else works.
+#
+# THIS UNIT IS TRACKED IN THE REPO ON PURPOSE. `elephant service enable`
+# generates its own copy in ~/.config/systemd/user/, and that generated version
+# has none of the hardening below. scripts/install-walker-packages.sh therefore
+# does NOT call `elephant service enable`; install.sh installs this file
+# instead, so a re-run cannot quietly revert the fix.
+#
+# ORDERING IS THE WHOLE POINT. The generated unit had the right After= and
+# WantedBy= already, and still came up dead after a cold boot. `After=` orders
+# against the target being REACHED, which says nothing about whether Hyprland
+# has pushed WAYLAND_DISPLAY / XDG_CURRENT_DESKTOP /
+# HYPRLAND_INSTANCE_SIGNATURE into the systemd user environment yet — that
+# happens in an exec inside hyprland.lua, and it is a race. An elephant that
+# wins the race starts blind, and its clipboard and windows providers have no
+# Wayland connection to attach to.
+#
+# Same problem gaming-mode-watch.service already solves, so this copies that
+# solution exactly:
+#   ConditionEnvironment  skip the start entirely when the environment is not
+#                         populated, rather than starting broken. A skipped
+#                         unit is inactive, not failed, so it raises no alarm.
+#   hyprland.lua          `systemctl --user restart elephant.service` runs right
+#                         after dbus-update-activation-environment. The restart
+#                         re-evaluates the condition, which now passes, and
+#                         elephant starts with a complete environment.
+#
+# WAYLAND_DISPLAY rather than HYPRLAND_INSTANCE_SIGNATURE: KDE is still the
+# fallback session and sets WAYLAND_DISPLAY too, so this stays session-agnostic.
+Description=Elephant data provider backend for Walker
+Documentation=https://github.com/abenz1267/elephant
+After=graphical-session.target
+PartOf=graphical-session.target
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+# Absolute path: a --user unit does not inherit your shell PATH.
+ExecStart=/usr/bin/elephant
+# always, not on-failure: elephant exiting cleanly for any reason still leaves
+# the launcher useless, and there is nothing to gain from staying down.
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target
