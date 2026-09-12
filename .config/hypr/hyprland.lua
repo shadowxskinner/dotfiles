@@ -196,15 +196,13 @@ hl.layer_rule({
 -- Costs nothing while hidden: the surface is unmapped, so direct scanout and
 -- solitary resume and the games-fullscreen rule keeps doing its job.
 --
--- dim_around is a judgement call. It looks right over the desktop and may be
--- too heavy over a game; drop it first if the overlay feels oppressive.
+-- dim_around was dropped: it darkened the whole desktop. Blur stays.
 hl.layer_rule({
     name         = "gamebar-chrome",
     match        = { namespace = "^gamebar$" },
     blur         = true,
     ignore_alpha = 0.05,
     animation    = "popin",
-    dim_around   = true,
 })
 
 --------------------------------------------------------------------------------
