@@ -257,6 +257,8 @@ hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("~/.local/bin/theme-cycle next")
 hl.bind(mainMod .. " + comma", hl.dsp.exec_cmd("~/.local/bin/theme-cycle prev"))
 hl.bind(mainMod .. " + apostrophe", hl.dsp.exec_cmd("~/.local/bin/theme-mode auto"))
 hl.bind(mainMod .. " + G", hl.dsp.exec_cmd("~/.local/bin/gaming-mode toggle"))
+-- Mac Option arrives as Alt through Moonlight: Control+Option+G toggles Gamebar.
+hl.bind("CTRL + ALT + G", hl.dsp.exec_cmd("~/Projects/gamebar/scripts/gamebarctl toggle"))
 
 -- Session picker. Walker renders the menu defined in
 -- ~/.config/elephant/menus/session.toml, whose entries call `session-switch kde`
