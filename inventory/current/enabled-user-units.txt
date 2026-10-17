@@ -1,0 +1,17 @@
+app-dev.lizardbyte.app.Sunshine.service
+audio-selfheal.timer
+elephant.service
+gamebar-daemon.service
+gamebar-ui.service
+gaming-mode-watch.service
+hermes-update-reminder.timer
+p11-kit-server.socket
+pc-heartbeat.timer
+pipewire-pulse.socket
+pipewire.socket
+sunshine-watchdog.timer
+triage-watch.timer
+we-auto.service
+we-auto.timer
+wireplumber.service
+xdg-user-dirs.service

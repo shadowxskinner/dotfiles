@@ -6,6 +6,7 @@ cd "$repo_dir"
 
 bash -n install.sh
 bash -n scripts/install-hyprland-packages.sh
+bash -n scripts/capture-linux-inventory.sh
 python -m json.tool .config/waybar/config >/dev/null
 python3 -m py_compile .config/waybar/player-button.py .config/waybar/window-count.py \
   .config/waybar/wifi-menu .config/waybar/bluetooth-menu
@@ -181,6 +182,8 @@ for required in .config/hypr/hyprland.conf .config/waybar/config .config/waybar/
                 .config/elephant/menus/session.toml \
                 scripts/gaming-mode scripts/session-switch scripts/midnight-session-helper \
                 scripts/walker-toggle scripts/install-walker-packages.sh \
+                scripts/capture-linux-inventory.sh docs/FEDORA-HYPRLAND.md \
+                inventory/README.md \
                 AGENTS.md .ai/context.md; do
   [[ -f "$required" ]] || { echo "Missing $required" >&2; exit 1; }
 done

@@ -86,3 +86,7 @@ maintained as a rollback. KDE's wallpaper and autologin paths remain unchanged.
 ```bash
 ./scripts/check.sh
 ```
+
+For a future clean Fedora system running only Hyprland, use
+[`docs/FEDORA-HYPRLAND.md`](docs/FEDORA-HYPRLAND.md). It is a staged rebuild guide; the current
+installer remains Arch-specific and keeps KDE as this machine's recovery desktop.
