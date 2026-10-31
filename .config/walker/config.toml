@@ -30,7 +30,7 @@ click_to_close = true
 # Harmless if Hyprland does not implement the protocol — the request is simply
 # ignored, and the walker-chrome layer rule in hyprland.lua still applies if its
 # namespace match is right. Belt and braces; whichever lands first wins.
-ext_background_effect_blur = true
+ext_background_effect_blur = false
 selection_wrap = false
 exact_search_prefix = "'"
 page_jump_items = 10

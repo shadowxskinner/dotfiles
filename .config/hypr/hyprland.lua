@@ -18,7 +18,9 @@ local mainMod     = "SUPER"
 -- Monitors
 --------------------------------------------------------------------------------
 
-hl.monitor({ output = "DP-3", mode = "3840x2160@165", position = "0x0", scale = 1.5 })
+-- bitdepth 10 for HDR10. Desktop stays on the default srgb preset; HDR only
+-- engages for fullscreen HDR apps via render.cm_auto_hdr below.
+hl.monitor({ output = "DP-3", mode = "3840x2160@165", position = "0x0", scale = 1.5, bitdepth = 10, vrr = 2 })
 
 -- Remember the portrait display layout when HDMI-A-1 is connected.
 hl.monitor({
@@ -350,3 +352,8 @@ end)
 hl.on("config.reloaded", function()
     hl.exec_cmd("~/.local/bin/hypr-theme-apply")
 end)
+
+-- Flicker fix: direct scanout stays off. VRR was 0 here; now 2 (fullscreen games
+-- only) so the desktop never flickers. Set back to 0 if games flicker.
+-- cm_auto_hdr = 1: fullscreen HDR10 apps switch the monitor into HDR automatically.
+hl.config({ misc = { vrr = 2 }, render = { direct_scanout = false, cm_auto_hdr = 1 } })
