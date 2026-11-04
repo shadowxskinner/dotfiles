@@ -8,6 +8,10 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 
 - Existing public GitHub dotfiles were recovered to `/home/shadow/Projects/dotfiles`.
 - Hyprland 0.56.2 is a second SDDM session; KDE remains the fallback and Sunshine autologin target.
+- `hyprpolkitagent` is Hyprland-only. A systemd drop-in requires
+  `HYPRLAND_INSTANCE_SIGNATURE`, and Hyprland exports the session environment before
+  starting the unit. Starting it in KDE (or before the env import) leaves the unit
+  failed; `triage-watch` then alerts on `systemctl --user --failed`.
 - The Hyprland config exports `WAYLAND_DISPLAY`, `XDG_CURRENT_DESKTOP`, `XDG_SESSION_TYPE`, and
   `HYPRLAND_INSTANCE_SIGNATURE` into the systemd user environment.
 - Wallpaper Engine on Hyprland lives in `wayland-kde-build`, not this repo. Dragon and Reaper are
@@ -26,6 +30,7 @@ Reproducible Midnight-PC desktop configuration, including a clean Hyprland sessi
 ## Durable decisions
 
 - Hyprland is a second SDDM session; KDE remains the fallback and Sunshine autologin target.
+- `hyprpolkitagent` must not run in Plasma. KDE keeps `polkit-kde-agent`.
 - Reuse the theme manager in `wayland-kde-build`; only its wallpaper backend differs by session.
 - Do not push local commits without an explicit request.
 
